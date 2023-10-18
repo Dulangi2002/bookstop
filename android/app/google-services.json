@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1037190070569",
+    "project_id": "bookstop-73d9a",
+    "storage_bucket": "bookstop-73d9a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1037190070569:android:f45053c1162dd74bf6b738",
+        "android_client_info": {
+          "package_name": "com.example.bookstop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1037190070569-5qso94aturb5cds0j5qri77o92kcrbnl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9MxcqsDx63PSy-ApsOJcS2yX0hZEVIE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1037190070569-5qso94aturb5cds0j5qri77o92kcrbnl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
