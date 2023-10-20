@@ -2,7 +2,9 @@
 
 import 'dart:io';
 
+import 'package:bookstop/Cart.dart';
 import 'package:bookstop/fetchProducts.dart';
+import 'package:bookstop/screens/cart.dart';
 import 'package:bookstop/screens/fetchData.dart';
 import 'package:bookstop/screens/viewItem.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -51,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +63,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Row(
         children: [
+          
+
+
+
+          // ElevatedButton(
+          //     onPressed: () {
+          //       var userEmail = FirebaseAuth.instance.currentUser!.email;
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (context) => CartScreen(
+          //             userEmail: userEmail.toString(),
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //     child: Text('View Cart')),
           Container(
             width: MediaQuery.of(context).size.width /
                 2, // Set the width for the first container
@@ -89,11 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text('Products'),
                 SizedBox(height: 20),
                 Expanded(
-                  
                   child: ListView.builder(
                     itemCount: products.length,
-                    itemBuilder: (context, index)
-                     {
+                    itemBuilder: (context, index) {
                       return ListTile(
                         title: Text(products[index]
                             ['title']), // Displaying product title
@@ -105,9 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               'assets/images/${products[index]['image']}'),
                         ),
                         trailing: ElevatedButton(
-
-                          onPressed: 
-                          () async {
+                          onPressed: () async {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -116,15 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             );
-                          }, child: 
-                          Text('View'),
-                          
+                          },
+                          child: Text('View'),
                         ),
-                      
-                        
-
-
-
                       );
                     },
                   ),
@@ -137,4 +148,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

@@ -21,7 +21,9 @@ class _ViewItemState extends State<ViewItem> {
   List<String> isLikedReviews = [];
   List<String> reviewsByUser = [];
   bool flag = true;
-  static const snackbar = SnackBar(content: Text('Item added to cart'));
+  static const snackbar = SnackBar(content: Text('Item added to cart '));
+  var quantityToAddToCart = 1;
+  var pricePerItem = 0.0;
 
   @override
   void initState() {
@@ -186,23 +188,35 @@ class _ViewItemState extends State<ViewItem> {
   }
 
   //add to cart function
-  Future<Future<ScaffoldFeatureController<SnackBar, SnackBarClosedReason>>> addToCart(
-    String title,
-  ) async {
-    final user = FirebaseAuth.instance.currentUser;
+  Future<void> addToCart(String title, double quantityToAddToCart, double pricePerItem) async {
+  final user = FirebaseAuth.instance.currentUser;
 
-    CollectionReference _collectionRef =
-        FirebaseFirestore.instance.collection('Users');
-    return _collectionRef
-        .doc(user!.uid)
+  CollectionReference _collectionRef =
+      FirebaseFirestore.instance.collection('Users');
+  try {
+    await _collectionRef
+        .doc(user!.email)
         .collection('Cart')
         .doc(widget.product['title'])
         .set({
           'title': widget.product['title'],
-        })
-        .then((value) => ScaffoldMessenger.of(context).showSnackBar(snackbar))
-        .catchError((error) => print("Failed to add item: $error"));
+          'quantity': quantityToAddToCart,
+          'pricePerItem': widget.product['price'] * quantityToAddToCart,
+        });
+    
+    setState(() {
+      quantityToAddToCart = 1;
+      pricePerItem = widget.product['price'] * quantityToAddToCart;
+
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Item added to cart'),
+    ));
+  } catch (error) {
+    print("Failed to add item: $error");
   }
+}
 
 
   @override
@@ -242,13 +256,50 @@ class _ViewItemState extends State<ViewItem> {
               widget.product['price'].toString(),
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-                onPressed: () {
-                  addToCart(
-                    widget.product['title'],
-                  );
-                },
-                child: Text('Add to cart')),
+            //quantity buttons
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          if (quantityToAddToCart > 1) {
+                            quantityToAddToCart--;
+                            pricePerItem = widget.product['price'] * quantityToAddToCart;
+                          }
+                        });
+                      },
+                      icon: Icon(Icons.remove),
+                    ),
+                    Text(quantityToAddToCart.toString()),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          quantityToAddToCart++;
+                          pricePerItem = widget.product['price'] * quantityToAddToCart;
+                        });
+                      },
+                      icon: Icon(Icons.add),
+                    ),
+                  ],
+                ),
+
+            SizedBox(height: 10),
+
+                //add to cart button
+                ElevatedButton(
+                  onPressed: () {
+                    addToCart(widget.product['title'], quantityToAddToCart.toDouble(), pricePerItem);
+                  },
+                  child: Text('Add to cart'),
+                ),
+          
+
+      
+
             SizedBox(
               child: ElevatedButton(
                 onPressed: () async {
@@ -437,7 +488,15 @@ class _ViewItemState extends State<ViewItem> {
             ))
           ],
         ),
-      ),
-    );
+
+          ],
+        ),
+        
+     )
+     
+     ) ; 
+      
+    
   }
+  
 }
