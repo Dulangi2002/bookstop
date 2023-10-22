@@ -29,28 +29,6 @@ class User {
       'profileimage': profileimage
     };
   }
-/*
-  factory User.fromMap(Map<String, dynamic> json) {
-    return User(
-        email: json['email'],
-        country: json['country'],
-        city: json['city'],
-        street: json['street'],
-        province: json['province'],
-        profileimage: json['profileimage']);
-  }
-/*
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-        email: json['email'],
-        country: json['country'],
-        city: json['city'],
-        street: json['street'],
-        province: json['province'],
-        profileimage: json['profileimage']);
-  }**/
-
-  toList() {}*/
 
 
     static User fromJson(Map<String, dynamic> json) =>  User(

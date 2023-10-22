@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math';
+import 'package:bookstop/screens/HomeScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,7 +9,6 @@ import 'package:flutter/material.dart';
 import './register.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-
 
 class login extends StatefulWidget {
   const login({Key? key}) : super(key: key);
@@ -20,71 +21,92 @@ class _loginState extends State<login> {
   final emailcontroller = TextEditingController();
   final passwordcontroller = TextEditingController();
 
+  Future<String?> fetchProfileImage() async {
+    try {
+      String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(userEmail)
+          .get();
+
+      // Use null-aware operator to handle null value
+      String? profilePhoto = doc['profileimage'] as String?;
+
+      return profilePhoto;
+    } catch (e) {
+      print('Error fetching profile image: $e');
+      return null;
+    }
+  }
 
   Future<void> login() async {
-  String email = emailcontroller.text.trim();
-  String password = passwordcontroller.text.trim();
-  if(email.isEmpty){
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Provide credentials'),
-          content: Text('Please enter your email'),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+    String email = emailcontroller.text.trim();
+    String password = passwordcontroller.text.trim();
+    if (email.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Provide credentials'),
+            content: Text('Please enter your email'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    } else if (password.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Provide credentials'),
+            content: Text('Please enter your password'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    } else {
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
         );
-      },
-    );
-    return;
-    
-  }else if(password.isEmpty){
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Provide credentials'),
-          content: Text('Please enter your password'),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-    return;
-  }
 
-else {
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    Navigator.pushReplacementNamed(context, '/main');
-  } catch (e) {
-    if (e is FirebaseAuthException) {
-      if (e.code == 'user-not-found') {
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
+        String? profileImagePath = await fetchProfileImage();
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+        );
+      } catch (e) {
+        if (e is FirebaseAuthException) {
+          if (e.code == 'user-not-found') {
+            print('No user found for that email.');
+          } else if (e.code == 'wrong-password') {
+            print('Wrong password provided for that user.');
+          }
+        }
+        print('Error: $e');
       }
     }
-    print(e);
   }
-}
-
-}
 
   @override
   void dispose() {
@@ -104,7 +126,6 @@ else {
               alignment: Alignment.topLeft,
               child: Text(
                 'Login',
-               
               ),
             ),
             Container(
@@ -260,6 +281,4 @@ else {
       ),
     );
   }
-
-
 }

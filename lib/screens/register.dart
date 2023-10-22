@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'const.dart';
+import 'package:bookstop/screens/Login.dart';
+import 'package:bookstop/screens/profilephoto.dart';
+import 'package:bookstop/screens/signIn.dart';
 import 'package:bookstop/screens/register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'package:bookstop/screens/locationdetails.dart';
-import 'package:bookstop/const.dart';
 import 'package:http/http.dart' as http;
 
 class register extends StatefulWidget {
@@ -31,14 +31,7 @@ class _registerState extends State<register> {
 
       print(reqbody);
 
-      var response = await http.post(
-        Uri.parse(registration),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(reqbody),
-      );
-
-      var jsonResponse = jsonDecode(response.body);
-      print(jsonResponse['status']);
+    
     }
   }
 
@@ -143,7 +136,7 @@ Widget _buildPortraitLayout() {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => LocationDetails(),
+                        builder: (context) => ProfileImage(),
                       ),
                     );
                     
@@ -152,50 +145,28 @@ Widget _buildPortraitLayout() {
                     print(error);
                   });
                   
-                  /*
-                  String email = emailcontroller.text.trim();
-                  String password = passwordController.text.trim();
-                  FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                          email: email, password: password)
-                      .then((value) {
-                    print(value.user!.uid);
-                    navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => locationdetails(),
-                      ),
-                    );
-                    
-                    
-                  }).catchError((error) {
-                    print(error);
-                  });
-*/
-
-                  //registerUser();
-
+               
                   
                   
                 },
                 child: Text('Next'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color.fromRGBO(155, 205, 210, 1),
+
                 )),
 
-            /*ElevatedButton(
-              onPressed: () {
-                /*  var data = {
-                  "name": emailcontroller.text,
-                };*/
-               print("fhdfh");
-                registerUser();
-              },
-              child: Text('Next'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(155, 205, 210, 1),
-              ),
-            )*/
+                ElevatedButton(onPressed: ()
+                {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => login()
+                      ),
+                    );
+                }
+                , child: Text('Sign In'),)
+
+          
           ],
         )
       );

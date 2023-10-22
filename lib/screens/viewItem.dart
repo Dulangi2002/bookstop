@@ -1,7 +1,9 @@
+import 'package:bookstop/Cart.dart';
 import 'package:bookstop/fetchProducts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'cart.dart';
 
 class ViewItem extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -22,8 +24,9 @@ class _ViewItemState extends State<ViewItem> {
   List<String> reviewsByUser = [];
   bool flag = true;
   static const snackbar = SnackBar(content: Text('Item added to cart '));
-  var quantityToAddToCart = 1;
+  var quantityToAddToCart = 0;
   var pricePerItem = 0.0;
+  String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
 
   @override
   void initState() {
@@ -188,315 +191,360 @@ class _ViewItemState extends State<ViewItem> {
   }
 
   //add to cart function
-  Future<void> addToCart(String title, double quantityToAddToCart, double pricePerItem) async {
-  final user = FirebaseAuth.instance.currentUser;
+  Future<void> addToCart(
+      String title, double quantityToAddToCart, double pricePerItem) async {
+    final user = FirebaseAuth.instance.currentUser;
 
-  CollectionReference _collectionRef =
-      FirebaseFirestore.instance.collection('Users');
-  try {
-    await _collectionRef
-        .doc(user!.email)
-        .collection('Cart')
-        .doc(widget.product['title'])
-        .set({
-          'title': widget.product['title'],
+    DocumentReference _userDoc =
+        FirebaseFirestore.instance.collection('Users').doc(user!.email);
+    CollectionReference _collectionRef = _userDoc.collection('Cart');
+
+    try {
+      final DocumentSnapshot _doc = await _userDoc.get();
+      if (_doc.exists) {
+        //check if the product already exists in the cart
+        final DocumentSnapshot _doc = await _collectionRef.doc(title).get();
+        if (_doc.exists) {
+          //if the product exists, update the quantity
+          await _collectionRef.doc(title).update({
+            'quantity': FieldValue.increment(quantityToAddToCart),
+            'price': FieldValue.increment(pricePerItem),
+          });
+        } else {
+          await _collectionRef.doc(title).set({
+            'title': title,
+            'quantity': quantityToAddToCart,
+            'price': pricePerItem,
+            'productImage': widget.product['image'],
+          });
+        }
+      } else {
+        await _collectionRef.doc(title).set({
+          'title': title,
           'quantity': quantityToAddToCart,
-          'pricePerItem': widget.product['price'] * quantityToAddToCart,
+          'price': pricePerItem,
+          'productImage': widget.product['image'],
         });
-    
-    setState(() {
-      quantityToAddToCart = 1;
-      pricePerItem = widget.product['price'] * quantityToAddToCart;
+      }
+      setState(() {
+        quantityToAddToCart = 1;
+        pricePerItem = widget.product['price'] * quantityToAddToCart;
+      });
 
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Item added to cart'),
-    ));
-  } catch (error) {
-    print("Failed to add item: $error");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Item added to cart'),
+      ));
+    } catch (error) {
+      print("Failed to add item: $error");
+    }
   }
-}
 
+  Future<void> viewCart() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    try {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MyCart(
+            userEmail: userEmail,
+          ),
+        ),
+      );
+    } catch (error) {
+      print("Failed to add item: $error");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.product['title'],
+        appBar: AppBar(
+          title: Text(
+            widget.product['title'],
+          ),
         ),
-      ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  flag = !flag;
-                });
-              },
-              child: Text(
-                flag ? (firstHalf + "...") : (firstHalf + secondHalf),
-              ),
-            ),
-            SizedBox(height: 20),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'assets/images/${widget.product['image']}',
-                fit: BoxFit.cover,
-                width: 50, // Set the width of the image as per your requirement
-                height:
-                    50, // Set the height of the image as per your requirement
-              ),
-            ),
-            Text(
-              widget.product['price'].toString(),
-            ),
-            SizedBox(height: 20),
-            //quantity buttons
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          if (quantityToAddToCart > 1) {
-                            quantityToAddToCart--;
-                            pricePerItem = widget.product['price'] * quantityToAddToCart;
-                          }
-                        });
-                      },
-                      icon: Icon(Icons.remove),
-                    ),
-                    Text(quantityToAddToCart.toString()),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          quantityToAddToCart++;
-                          pricePerItem = widget.product['price'] * quantityToAddToCart;
-                        });
-                      },
-                      icon: Icon(Icons.add),
-                    ),
-                  ],
-                ),
-
-            SizedBox(height: 10),
-
-                //add to cart button
-                ElevatedButton(
-                  onPressed: () {
-                    addToCart(widget.product['title'], quantityToAddToCart.toDouble(), pricePerItem);
-                  },
-                  child: Text('Add to cart'),
-                ),
-          
-
-      
-
-            SizedBox(
-              child: ElevatedButton(
-                onPressed: () async {
-                  await showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Write a review'),
-                      content: TextField(
-                        controller: widget._reviewController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Review',
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (widget._reviewController.text.isNotEmpty) {
-                              addReview();
-                            } else {
-                              print('Review is empty');
-                            }
-                          },
-                          child: Text('Submit'),
-                        ),
-                      ],
-                    ),
-                  );
+        body: Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    flag = !flag;
+                  });
                 },
-                child: Text('Write a review'),
-              ),
-            ),
-            SizedBox(height: 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      filterReviewsBasedOnNewest();
-                    });
-                  },
-                  child: Text('Sort by newest'),
+                child: Text(
+                  flag ? (firstHalf + "...") : (firstHalf + secondHalf),
                 ),
-              ],
-            ),
-            Container(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: fetchReviews(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      String reviewId =
-                          snapshot.data![index]['reviewId'].toString();
-                      bool isReviewLiked = false;
-                      bool isReviewByUser = false;
-
-                      // Check if the review is liked
-                      if (isLikedReviews.contains(reviewId)) {
-                        isReviewLiked = true;
-                      }
-
-                      if (reviewsByUser.contains(reviewId)) {
-                        isReviewByUser = true;
-                      }
-
-                      List<Widget> buttons = [
-                        ElevatedButton(
-                          onPressed: () {
-                            if (!isReviewLiked) {
-                              // Like the review if it's not already liked
-                              likeReview(reviewId);
-                              setState(() {
-                                isLikedReviews.add(reviewId);
-                              });
-                            } else {
-                              // Undo like if it's already liked
-                              undoLike(reviewId);
-                              setState(() {
-                                isLikedReviews.remove(reviewId);
-                              });
+              ),
+              SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/images/${widget.product['image']}',
+                  fit: BoxFit.cover,
+                  width:
+                      50, // Set the width of the image as per your requirement
+                  height:
+                      50, // Set the height of the image as per your requirement
+                ),
+              ),
+              Text(
+                widget.product['price'].toString(),
+              ),
+              SizedBox(height: 20),
+              //quantity buttons
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            if (quantityToAddToCart > 1) {
+                              quantityToAddToCart--;
+                              pricePerItem = (widget.product['price'] *
+                                      quantityToAddToCart)
+                                  .toDouble();
                             }
-                          },
-                          child: Text(isReviewLiked ? 'Undo Like' : 'Like'),
-                        ),
-                      ];
+                          });
+                        },
+                        icon: Icon(Icons.remove),
+                      ),
+                      Text(quantityToAddToCart.toString()),
+                      Text(pricePerItem.toString()),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            quantityToAddToCart++;
+                            pricePerItem =
+                                (widget.product['price'] * quantityToAddToCart)
+                                    .toDouble();
+                          });
+                        },
+                        icon: Icon(Icons.add),
+                      ),
+                    ],
+                  ),
 
-                      if (isReviewByUser) {
-                        buttons.add(
-                          ElevatedButton(
-                            onPressed: () {
-                              // Delete the review
-                              DeleteReview(
-                                reviewId,
-                              );
-                            },
-                            child: Text('Delete'),
+                  SizedBox(height: 10),
+
+                  ElevatedButton(
+                      onPressed: () {
+                        viewCart();
+                      },
+                      child: Text('View Cart')),
+
+                  SizedBox(height: 10),
+
+                  //add to cart button
+                  ElevatedButton(
+                    onPressed: () {
+                      addToCart(widget.product['title'],
+                          quantityToAddToCart.toDouble(), pricePerItem);
+                    },
+                    child: Text('Add to cart'),
+                  ),
+
+                  SizedBox(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Write a review'),
+                            content: TextField(
+                              controller: widget._reviewController,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Review',
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (widget
+                                      ._reviewController.text.isNotEmpty) {
+                                    addReview();
+                                  } else {
+                                    print('Review is empty');
+                                  }
+                                },
+                                child: Text('Submit'),
+                              ),
+                            ],
                           ),
                         );
-                      }
-                      ;
-                      if (isReviewByUser) {
-                        final oldReview = snapshot.data![index]['review'];
-                        TextEditingController _reviewController =
-                            TextEditingController(text: oldReview);
-                        buttons.add(
-                          ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Edit Review'),
-                                  content: TextField(
-                                    controller: _reviewController,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Review',
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        final editedReview =
-                                            _reviewController.text;
-                                        if (editedReview.isNotEmpty) {
-                                          // Call EditReview with the edited review
-                                          EditReview(reviewId, editedReview);
-                                        } else {
-                                          _reviewController.text = oldReview;
-                                        }
-                                      },
-                                      child: Text('Submit'),
-                                    ),
-                                  ],
+                      },
+                      child: Text('Write a review'),
+                    ),
+                  ),
+                  // SizedBox(height: 50),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //   children: [
+                  //     ElevatedButton(
+                  //       onPressed: () {
+                  //         setState(() {
+                  //           filterReviewsBasedOnNewest();
+                  //         });
+                  //       },
+                  //       child: Text('Sort by newest'),
+                  //     ),
+                  //   ],
+                  // ),
+                  Container(
+                      child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: fetchReviews(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            String reviewId =
+                                snapshot.data![index]['reviewId'].toString();
+                            bool isReviewLiked = false;
+                            bool isReviewByUser = false;
+
+                            // Check if the review is liked
+                            if (isLikedReviews.contains(reviewId)) {
+                              isReviewLiked = true;
+                            }
+
+                            if (reviewsByUser.contains(reviewId)) {
+                              isReviewByUser = true;
+                            }
+
+                            List<Widget> buttons = [
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (!isReviewLiked) {
+                                    // Like the review if it's not already liked
+                                    likeReview(reviewId);
+                                    setState(() {
+                                      isLikedReviews.add(reviewId);
+                                    });
+                                  } else {
+                                    // Undo like if it's already liked
+                                    undoLike(reviewId);
+                                    setState(() {
+                                      isLikedReviews.remove(reviewId);
+                                    });
+                                  }
+                                },
+                                child:
+                                    Text(isReviewLiked ? 'Undo Like' : 'Like'),
+                              ),
+                            ];
+
+                            if (isReviewByUser) {
+                              buttons.add(
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Delete the review
+                                    DeleteReview(
+                                      reviewId,
+                                    );
+                                  },
+                                  child: Text('Delete'),
                                 ),
                               );
-                            },
-                            child: Text('Edit'),
-                          ),
+                            }
+                            ;
+                            if (isReviewByUser) {
+                              final oldReview = snapshot.data![index]['review'];
+                              TextEditingController _reviewController =
+                                  TextEditingController(text: oldReview);
+                              buttons.add(
+                                ElevatedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text('Edit Review'),
+                                        content: TextField(
+                                          controller: _reviewController,
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: 'Review',
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              final editedReview =
+                                                  _reviewController.text;
+                                              if (editedReview.isNotEmpty) {
+                                                // Call EditReview with the edited review
+                                                EditReview(
+                                                    reviewId, editedReview);
+                                              } else {
+                                                _reviewController.text =
+                                                    oldReview;
+                                              }
+                                            },
+                                            child: Text('Submit'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  child: Text('Edit'),
+                                ),
+                              );
+                            }
+
+                            return Column(
+                              children: [
+                                Text(
+                                  snapshot.data![index]['review'],
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  snapshot.data![index]['reviewCreatedAt']
+                                      .toString(),
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  snapshot.data![index]
+                                          ['numberOfLikesPerReview']
+                                      .toString(),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: buttons,
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(),
                         );
                       }
-
-                      return Column(
-                        children: [
-                          Text(
-                            snapshot.data![index]['review'],
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            snapshot.data![index]['reviewCreatedAt'].toString(),
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            snapshot.data![index]['numberOfLikesPerReview']
-                                .toString(),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: buttons,
-                          ),
-                        ],
-                      );
                     },
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              },
-            ))
-          ],
-        ),
-
-          ],
-        ),
-        
-     )
-     
-     ) ; 
-      
-    
+                  ))
+                ],
+              ),
+            ],
+          ),
+        ));
   }
-  
 }

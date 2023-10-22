@@ -12,10 +12,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  final File profileImage;
+  
 
   const HomeScreen({
-    required this.profileImage,
+    
     Key? key,
   }) : super(key: key);
 
@@ -36,14 +36,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<String> fetchProfilePhoto() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance
+    try{
+
+        DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection('Users')
         .doc(userEmail)
-        .get();
+        .get()
+        .then((value) => value);
+        return doc['profileimage'];
 
-    String profilePhoto = doc['profileimage'] ??
-        'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png';
-    return profilePhoto;
+    } catch (error) {
+      print("Error fetching profile photo: $error");
+      return "";
+    }
+   
+
   }
 
   Future<void> _fetchProducts() async {
@@ -93,10 +100,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     height: 200,
                     width: 200,
-                    child: Image.file(
-                      widget.profileImage,
-                      fit: BoxFit.cover,
-                    ),
+                   child:FutureBuilder<String>(
+  future: fetchProfilePhoto(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return CircularProgressIndicator();
+    } else if (snapshot.hasError) {
+      return Text('Error loading profile photo: ${snapshot.error}');
+    } else if (snapshot.hasData) {
+      return Image.network(snapshot.data.toString());
+    } else {
+      return Text('No profile photo available'); // Placeholder message
+    }
+  },
+)
+
                   ),
                 ),
               ],

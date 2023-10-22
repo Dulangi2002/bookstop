@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,53 +31,32 @@ class _ProfileImageState extends State<ProfileImage> {
     _initPrefs();
   }
 
-
- 
-
-  Map<String, dynamic> addprofilepath() {
-    return {
-      'profileimage': image!.path,
-    };
-  }
-
   Future<void> addprofilephoto() async {
     try {
       String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
-      /*await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userEmail)
-          .collection('Userdetails')
-          .doc('Profilephoto')
-          .set(addprofilepath());*/
+      await FirebaseStorage.instance
+          .ref('profilephoto/$userEmail')
+          .putFile(image!);
+      String downloadURL = await FirebaseStorage.instance
+          .ref('profilephoto/$userEmail')
+          .getDownloadURL();
+      print(downloadURL);
 
-          await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('Users')
           .doc(userEmail)
           .set(
-            addprofilepath(),
-          );
-         
-
-        
-
-
-
-
-      /*.collection('Users')
-          .doc(userEmail)
-          .collection('UserLocationDetails')
-          .add(addprofilepath());*/
+        {'profileimage': downloadURL},
+      );
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(
-            profileImage: image!,
-          ),
+          builder: (context) => HomeScreen(),
         ),
       );
     } catch (error) {
-    print("Error adding profile photo: $error");
+      print("Error adding profile photo: $error");
     }
   }
 
