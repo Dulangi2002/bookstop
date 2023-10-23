@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:bookstop/Cart.dart';
 import 'package:bookstop/fetchProducts.dart';
 import 'package:bookstop/screens/cart.dart';
 import 'package:bookstop/screens/fetchData.dart';

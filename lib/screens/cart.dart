@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'package:bookstop/Cart.dart';
 import 'package:bookstop/screens/HomeScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -67,22 +66,25 @@ class _MyCartState extends State<MyCart> {
     }
   }
 
-  Future<void> decreaseQuantity(String title, int quantity , double price) async {
-    try {
-      var documentReference = FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userEmail)
-          .collection('Cart')
-          .doc(title)
-          .update({'quantity': quantity , 'price': price});
+    
 
-      documentReference.then((value) {
-        print('Quantity updated');
-      });
-    } catch (e) {
-      print('Error updating quantity: $e');
-    }
+Future<void> decreaseQuantity(String title, int quantity, double price) async {
+  try {
+    var documentReference = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(userEmail)
+        .collection('Cart')
+        .doc(title);
+
+    double newPrice = price / quantity * (quantity - 1);
+    await documentReference.update({'quantity': quantity, 'price': newPrice});
+
+    print('Quantity and price updated');
+  } catch (e) {
+    print('Error updating quantity and price: $e');
   }
+}
+
 
   Future<void> deleteItem(String title) async {
     try {
@@ -298,20 +300,17 @@ class _MyCartState extends State<MyCart> {
                                   icon: Icon(Icons.add),
                                 ),
                                 Text(items[index]['quantity'].toString()),
-                                
                                 IconButton(
                                   onPressed: () {
                                     setState(() {
                                       if (items[index]['quantity'] > 1) {
                                         items[index]['quantity']--;
-                                        items[index]['price'] = items[index]
-                                              ['price'] *
-                                          items[index]['quantity'];
                                       }
                                     });
                                     decreaseQuantity(items[index]['title'],
-                                        items[index]['quantity'].toInt() ,
-                                         items[index]['price']);
+                                        items[index]['quantity'].toInt()
+                                        , items[index]['price']
+                                        );
                                   },
                                   icon: Icon(Icons.remove),
                                 ),

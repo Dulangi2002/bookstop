@@ -81,9 +81,7 @@ Future<void> PickUp() async{
           children: [
             Text('Choose checkout method'),
             Text(widget.userEmail),
-
-            SizedBox.expand(  // to make the button full width
-             child: Column(
+             Column(
               children: [
                 ElevatedButton(onPressed: 
                 () =>{
@@ -104,7 +102,7 @@ Future<void> PickUp() async{
 
 
               ],
-             ),
+             
             ),
 
             

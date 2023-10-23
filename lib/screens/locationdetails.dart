@@ -1,4 +1,6 @@
 import 'package:bookstop/User.dart';
+import 'package:bookstop/screens/checkOut.dart';
+import 'package:bookstop/screens/payment.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,6 +37,13 @@ class _LocationDetailsState extends State<LocationDetails> {
   TextEditingController cityController = TextEditingController();
   TextEditingController streetController = TextEditingController();
   TextEditingController provinceController = TextEditingController();
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLocationDetail();
+  }
 
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -75,34 +84,57 @@ class _LocationDetailsState extends State<LocationDetails> {
       String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
 
       await FirebaseFirestore.instance
-            .collection('Users').doc(userEmail).collection('Userdetails').doc('locationdetails').set(createLocationData());
-
-    
-
-      /*  .collection('Users')
+          .collection('Users')
           .doc(userEmail)
-          .collection('UserLocationDetails')
-          .add(createLocationData());*/
-
-
-
-
-
-
-
-
-
+          .collection('Userdetails')
+          .doc('locationdetails')
+          .set(createLocationData());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Location details added successfully'),
+        ),
+      );
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProfileImage(),
+          builder: (context) => Payment(
+            userEmail: userEmail,
+          ),
         ),
       );
     } catch (error) {
       print(error);
     }
   }
+
+  Future<void> fetchLocationDetail() async {
+    try {
+      String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
+
+      DocumentReference docRef = FirebaseFirestore.instance
+          .collection('Users')
+          .doc(userEmail)
+          .collection('Userdetails')
+          .doc('locationdetails');
+
+
+    DocumentSnapshot doc = await docRef.get().then((value) => value);
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+    setState(() {
+      countryController.text = data['country'];
+      cityController.text = data['city'];
+      streetController.text = data['street'];
+      provinceController.text = data['province'];
+    });
+
+    } catch (error) {
+      print(error);
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +153,7 @@ class _LocationDetailsState extends State<LocationDetails> {
                     controller: countryController,
                     decoration: InputDecoration(
                       labelText: 'Country',
+                    
                     ),
                   ),
                   TextFormField(
@@ -171,7 +204,7 @@ class _LocationDetailsState extends State<LocationDetails> {
                     onPressed: () {
                       addUserLocationDetails();
                     },
-                    child: Text('Next'),
+                    child: Text('Save address'),
                   ),
                 ],
               ),

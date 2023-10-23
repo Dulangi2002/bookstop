@@ -1,4 +1,3 @@
-import 'package:bookstop/Cart.dart';
 import 'package:bookstop/fetchProducts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
