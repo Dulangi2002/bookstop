@@ -3,6 +3,7 @@ import 'package:bookstop/screens/Login.dart';
 import 'package:bookstop/screens/profilephoto.dart';
 import 'package:bookstop/screens/signIn.dart';
 import 'package:bookstop/screens/register.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bookstop/screens/locationdetails.dart';
@@ -16,165 +17,209 @@ class register extends StatefulWidget {
 }
 
 class _registerState extends State<register> {
-  TextEditingController emailcontroller = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final emailcontroller = TextEditingController();
+  final passwordController = TextEditingController();
+  bool isValidEmail(String email) {
+    // Use a regular expression for basic email validation
+    // This regex might not cover all edge cases, but it's a simple example
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
 
+  Future<void> register() async {
+    String email = emailcontroller.text.trim();
+    String password = passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please provide email and password'),
+        ),
+      );
+      return;
+    }
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password must be at least 6 characters'),
+        ),
+      );
+      return;
+    }
+//chwck if email is valid
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a valid email address'),
+        ),
+      );
+      return;
+    }
 
-  void registerUser() async {
-    print("function is working");
-    //creating an object that pass to the backend
-    if (emailcontroller.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      var reqbody = {
-        "email": emailcontroller.text,
-        "password": passwordController.text,
-      };
+//check if user exists
+    try {
+      final user = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      if (user != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileImage(),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      var message = 'An error occured, please check your credentials';
 
-      print(reqbody);
-
-    
+      if (error.code == 'email-already-in-use') {
+        message = 'The account already exists for that email.';
+      } else if (error.message != null) {
+        message = error.message!;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+    } catch (error) {
+      print(error);
     }
   }
 
   @override
-
   Widget build(BuildContext context) {
     return Scaffold(
-        body: OrientationBuilder(builder: (context, orientation) {
-   
-          return _buildPortraitLayout();
-        
-        }
-      
-
-      ),
-
-    );
-  }
-
-
-
-
-
-
-  
-
-
-Widget _buildPortraitLayout() {
-
-    
-      return SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.only(top: 50),
-              height: 300,
-              width: 200,
-              child: ClipRect(
-                //borderRadius: BorderRadius.all( Radius.circular(100)),
-                child: Image.asset(
-                  'assets/images/book4.jpg',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                color: Colors.white,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                  color: Colors.white,
-                )),
+        body: SingleChildScrollView(
+            child: Column(
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width,
+          height: 800,
+          // decoration: BoxDecoration(
+          //   gradient: LinearGradient(
+          //     begin: Alignment.topCenter,
+          //     end: Alignment.bottomCenter,
+          //     colors: [
+          //       Color.fromRGBO(155, 205, 210, 1),
+          //       Color.fromRGBO(155, 205, 210, 1),
+          //     ],
+          //   ),
+          //   borderRadius: BorderRadius.only(
+          //     bottomLeft: Radius.circular(90),
+          //   ),
+          // ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
                 child: TextFormField(
+                  cursorColor: Colors.black,
+                  cursorHeight: 20,
+                  
                   controller: emailcontroller,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    enabledBorder:
+                        OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
+                    ),
+                    labelText: 'Username',
                     labelStyle: TextStyle(
                       fontSize: 12,
                     ),
                     floatingLabelBehavior: FloatingLabelBehavior.never,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
+                    
+                    
+                  ),
+                ),
+              ),
+              Container(
+                margin:
+                EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
+                child: TextFormField(
+                  cursorColor: Colors.black,
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    enabledBorder:
+                        OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
                     ),
+                    labelText: 'Password',
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                    
                   ),
                 ),
               ),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                color: Colors.white,
-              ),
-              child: TextFormField(
-                controller: passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  labelStyle: TextStyle(
-                    fontSize: 12,
+              Container(
+                margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+                child: ElevatedButton(
+                 
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                     foregroundColor: Colors.white,
+
+                    textStyle: TextStyle(
+                     
+                      fontWeight: FontWeight.bold,
+                    ) ,
+        
+                  
+                    fixedSize: Size(500, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                  
+                    ),
+                     side: BorderSide(
+                        width: 2,
+                        color: Colors.black,
+                      )
                   ),
-                  floatingLabelBehavior: FloatingLabelBehavior.never,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                  ),
+                  //add the same styling as the input fields
+
+                  onPressed: () {
+                    register();
+                  },
+                  child: Text('Register'),
                 ),
               ),
-            ),
-            ElevatedButton(
-                onPressed: () {
-
-                  String email = emailcontroller.text.trim();
-                  String password = passwordController.text.trim();
-                  FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                          email: email, password: password)
-                      .then((value) {
-                    print(value.user!.uid);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfileImage(),
-                      ),
-                    );
-                    
-                    
-                  }).catchError((error) {
-                    print(error);
-                  });
-                  
-               
-                  
-                  
-                },
-                child: Text('Next'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(155, 205, 210, 1),
-
-                )),
-
-                ElevatedButton(onPressed: ()
-                {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => login()
-                      ),
-                    );
-                }
-                , child: Text('Sign In'),)
-
+              Container(
+              margin: EdgeInsets.only(top: 10),
           
-          ],
-        )
-      );
-      
+              height: 50,
+              child: TextButton(
+                          style: ButtonStyle(
+                            foregroundColor:
+                                MaterialStateProperty.all<Color>(Colors.black),
+                            overlayColor: MaterialStateProperty.all<Color>(
+                                Colors.transparent),
+                          ),
+                           onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => login()),
+                  );
+                },
+                child:Text('Already have an account? Sign in',
+                
+                style: TextStyle(
+                  color: Colors.black,
+                  decoration: TextDecoration.underline,
+                ),
+
+                ),
+              ),
+              
+             
+              )
+            ],
+          ),
+        ),
+      ],
+    )));
+  }
 }
-}
-
-
-
-
-

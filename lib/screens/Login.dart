@@ -122,128 +122,99 @@ class _loginState extends State<login> {
         child: Column(
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 200, left: 20),
-              alignment: Alignment.topLeft,
-              child: Text(
-                'Login',
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              height: 500,
-              child: Form(
-                child: Container(
-                  padding:
-                      EdgeInsets.only(left: 20, bottom: 20, right: 20, top: 60),
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: Color.fromRGBO(156, 44, 243, 1.00)),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color.fromRGBO(108, 0, 255, 0.19),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset:
-                                  Offset(0, 2), // Adjust the offset if needed
-                            ),
-                          ],
-                        ),
+          width: MediaQuery.of(context).size.width,
+          height: 800,
+              
+              child:
+            
+          
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+
+             children:[
+              Container(
+                  margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
+             
+                   
                         // padding: EdgeInsets.only(left: 20 , bottom: 20  , right: 20 , top: 60),
 
-                        child: TextField(
+                        child: TextFormField(
+                          cursorColor: Colors.black,
+                          cursorHeight: 20,
                           controller: emailcontroller,
-                          textInputAction: TextInputAction.next,
+                       
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8.0)),
+                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromRGBO(156, 44, 243, 1.00)),
+                                  color: Colors.black , width: 2),
                             ),
+
 
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromRGBO(156, 44, 243, 1.00)),
+                                  color: Colors.black , width: 2),
                             ),
                             labelText: 'Email address',
-                            labelStyle: TextStyle(fontSize: 14),
+                            labelStyle: TextStyle(fontSize: 12),
                             floatingLabelBehavior: FloatingLabelBehavior.never,
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 30.0, horizontal: 12),
+                           
 
-                            //contentPadding: EdgeInsets.symmetric(vertical: 30.0 , horizontal: 12 ),
-                            // // Adjust the height as needed
+                         
                           ),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      
                       Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: Color.fromRGBO(156, 44, 243, 1.00)),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color.fromRGBO(108, 0, 255, 0.19),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset:
-                                  Offset(0, 2), // Adjust the offset if needed
-                            ),
-                          ],
-                        ),
-                        child: TextField(
+                        margin: EdgeInsets.only(
+                            top: 10, left: 15, right: 15, bottom: 15),  
+                        child: TextFormField(
+                          
+                          cursorColor: Colors.black,
+
                           controller: passwordcontroller,
-                          textInputAction: TextInputAction.next,
+                          
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8.0)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
+                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromRGBO(156, 44, 243, 1.00)),
+                                  color: Colors.black , width: 2),
                             ),
+                             focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
+                    ),
                             labelText: 'Password',
-                            labelStyle: TextStyle(fontSize: 14),
+                            labelStyle: TextStyle(fontSize: 12),
                             floatingLabelBehavior: FloatingLabelBehavior.never,
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 30.0, horizontal: 12),
+                          
                           ),
                         ),
                       ),
-                      SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          width: 300,
-                          height: 50,
+                      Container(
+                        margin: EdgeInsets.only(top: 10, left: 15, right: 15),
                           child: ElevatedButton(
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                      side: BorderSide(
-                                          color: Color.fromRGBO(
-                                              156, 44, 243, 1.00)))),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white),
-                            ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          textStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                           fixedSize: Size(500, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                  
+                    ),
+                     side: BorderSide(
+                        width: 2,
+                        color: Colors.black,
+                      )
+                  ),
                             onPressed: login,
                             child: Text(
-                              'SIGN-IN',
-                              style: TextStyle(color: Colors.black),
+                              'Sign in',
+                          
                             ),
                           ),
                         ),
-                      ),
+                      
                       Container(
                         margin: EdgeInsets.only(top: 10),
                         width: 200,
@@ -274,11 +245,12 @@ class _loginState extends State<login> {
                     ],
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+              ],                      
+            ),        
+          ),  
+        );
   }
 }
+  
+      
+

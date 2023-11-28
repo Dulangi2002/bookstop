@@ -31,7 +31,45 @@ class _ProfileImageState extends State<ProfileImage> {
     _initPrefs();
   }
 
+  Future<void> Skip() async {
+    try {
+      try {
+        String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
+
+        //fetch the null profile image from storage
+       
+        String downloadURL = await FirebaseStorage.instance
+            .ref('nullProfile/profile photo.jfif')
+            .getDownloadURL();
+        print(downloadURL);
+
+        await FirebaseFirestore.instance.collection('Users').doc(userEmail).set(
+          {'profileimage': downloadURL},
+        );
+      } catch (error) {
+        print("Error adding profile photo: $error");
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(),
+        ),
+      );
+    } catch (error) {
+      print("Error adding profile photo: $error");
+    }
+  }
+
   Future<void> addprofilephoto() async {
+    if (image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a profile photo'),
+        ),
+      );
+      return;
+    }
+
     try {
       String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
       await FirebaseStorage.instance
@@ -42,10 +80,7 @@ class _ProfileImageState extends State<ProfileImage> {
           .getDownloadURL();
       print(downloadURL);
 
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userEmail)
-          .set(
+      await FirebaseFirestore.instance.collection('Users').doc(userEmail).set(
         {'profileimage': downloadURL},
       );
 
@@ -88,58 +123,112 @@ class _ProfileImageState extends State<ProfileImage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Profile Photo'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            imageProfile(),
-            SizedBox(height: 20),
-          ],
-        ),
+      body: SingleChildScrollView(
+        child: Column(children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: 800,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                imageProfile(),
+              ],
+            ),
+          )
+        ]),
       ),
     );
   }
 
   Widget imageProfile() {
-    return Stack(
+    return Column(
       children: <Widget>[
         CircleAvatar(
+          backgroundColor: Colors.grey[400],
           radius: 80.0,
           backgroundImage: image != null ? FileImage(image!) : null,
           child: image == null
               ? Icon(
                   Icons.account_circle,
-                  color: Color(0xFF81361E),
+                  color: Colors.black,
                   size: 60,
                 )
               : null,
         ),
         Positioned(
-          bottom: 20.0,
-          right: 20.0,
-          child: InkWell(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                builder: ((builder) => bottomSheet()),
-              );
-            },
-            child: Icon(
-              Icons.camera_alt,
-              color: Colors.teal,
-              size: 28.0,
+          child: Container(
+            margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+            width: 240,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              color: Colors.black87,
             ),
+            child: InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: ((builder) => bottomSheet()),
+                  );
+                },
+                child: Container(
+                  child: Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 28.0,
+                  ),
+                )),
           ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            addprofilephoto();
-          },
-          child: Text('Next'),
-        ),
+        Container(
+          margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+          child: Wrap(
+            spacing: 20,
+            children: <Widget>[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    fixedSize:
+                        Size.fromWidth(MediaQuery.of(context).size.width * 0.3),
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    side: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    )),
+                onPressed: () {
+                  addprofilephoto();
+                },
+                child: Text('Next'),
+              ),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      fixedSize: Size.fromWidth(
+                          MediaQuery.of(context).size.width * 0.3),
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      side: BorderSide(
+                        width: 2,
+                        color: Colors.black,
+                      )),
+                  onPressed: () {
+                    Skip();
+                  },
+                  child: Text('Skip'))
+            ],
+          ),
+        )
       ],
     );
   }
