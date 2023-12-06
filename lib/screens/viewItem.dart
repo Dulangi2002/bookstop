@@ -1,4 +1,5 @@
 import 'package:bookstop/fetchProducts.dart';
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +31,9 @@ class _ViewItemState extends State<ViewItem> {
   @override
   void initState() {
     super.initState();
-    firstHalf = widget.product['description'].substring(0, 100);
+    firstHalf = widget.product['description'].substring(0, 200);
     secondHalf = widget.product['description']
-        .substring(100, widget.product['description'].length);
+        .substring(200, widget.product['description'].length);
   }
 
   Future<void> addReview() async {
@@ -189,6 +190,40 @@ class _ViewItemState extends State<ViewItem> {
     }
   }
 
+  //add to favourites
+
+  Future<void> addToFavorites(String title, int price) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    DocumentReference _userDoc =
+        FirebaseFirestore.instance.collection('Users').doc(user!.email);
+    CollectionReference _collectionRef = _userDoc.collection('Favorites');
+
+    try {
+      final DocumentSnapshot _doc = await _userDoc.get();
+      if (_doc.exists) {
+        //check if the product already exists in favouries
+        final DocumentSnapshot _doc = await _collectionRef.doc(title).get();
+        if (_doc.exists) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Item already in favorites'),
+          ));
+        } else {
+          await _collectionRef.doc(title).set({
+            'title': title,
+            'price': widget.product['price'],
+            'productImage': widget.product['image'],
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Item added to favorites'),
+          ));
+        }
+      }
+    } catch (error) {
+      print("Failed to add item: $error");
+    }
+  }
+
   //add to cart function
   Future<void> addToCart(
       String title, double quantityToAddToCart, double pricePerItem) async {
@@ -263,10 +298,103 @@ class _ViewItemState extends State<ViewItem> {
             widget.product['title'],
           ),
         ),
-        body: Container(
+        body: SingleChildScrollView(
+            child: Container(
           padding: EdgeInsets.all(20),
           child: Column(
             children: [
+              SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/${widget.product['image']}',
+                  fit: BoxFit.cover,
+                  width:
+                      140, // Set the width of the image as per your requirement
+
+                  // Set the height of the image as per your requirement
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: Text(
+                  widget.product['author'].toString(),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 8),
+                child: Text(
+                  widget.product['title'],
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(bottom: 20),
+                child: Text(
+                  widget.product['price'].toString(),
+                ),
+              ),
+
+              Container(
+                  child: Row(children: [
+                //quantity buttons
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (quantityToAddToCart > 1) {
+                                quantityToAddToCart--;
+                                pricePerItem = (widget.product['price'] *
+                                        quantityToAddToCart)
+                                    .toDouble();
+                              }
+                            });
+                          },
+                          icon: Icon(Icons.remove),
+                        ),
+                        Text(quantityToAddToCart.toString()),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              quantityToAddToCart++;
+                              pricePerItem = (widget.product['price'] *
+                                      quantityToAddToCart)
+                                  .toDouble();
+                            });
+                          },
+                          icon: Icon(Icons.add),
+                        ),
+                        Text(pricePerItem.toString()),
+                      ],
+                    ),
+                  ],
+                ),
+                IconButton(
+                  
+                  icon: Icon(BootstrapIcons.cart),
+                 
+                  onPressed: () {
+                    addToCart(widget.product['title'],
+                        quantityToAddToCart.toDouble(), pricePerItem);
+                  },
+               
+                ),
+
+                IconButton(
+                  icon: Icon(BootstrapIcons.heart),
+                  onPressed: () {
+                    addToFavorites(
+                        widget.product['title'], widget.product['price']);
+                  },
+                ),
+              ])),
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -277,113 +405,126 @@ class _ViewItemState extends State<ViewItem> {
                   flag ? (firstHalf + "...") : (firstHalf + secondHalf),
                 ),
               ),
-              SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  'assets/images/${widget.product['image']}',
-                  fit: BoxFit.cover,
-                  width:
-                      50, // Set the width of the image as per your requirement
-                  height:
-                      50, // Set the height of the image as per your requirement
-                ),
-              ),
-              Text(
-                widget.product['price'].toString(),
-              ),
-              SizedBox(height: 20),
-              //quantity buttons
+
+              // quantity buttons
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            if (quantityToAddToCart > 1) {
-                              quantityToAddToCart--;
-                              pricePerItem = (widget.product['price'] *
-                                      quantityToAddToCart)
-                                  .toDouble();
-                            }
-                          });
-                        },
-                        icon: Icon(Icons.remove),
-                      ),
-                      Text(quantityToAddToCart.toString()),
-                      Text(pricePerItem.toString()),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            quantityToAddToCart++;
-                            pricePerItem =
-                                (widget.product['price'] * quantityToAddToCart)
-                                    .toDouble();
-                          });
-                        },
-                        icon: Icon(Icons.add),
-                      ),
-                    ],
-                  ),
+              //     Column(
+              //       children: [
+              //         IconButton(
+              //           onPressed: () {
+              //             setState(() {
+              //               if (quantityToAddToCart > 1) {
+              //                 quantityToAddToCart--;
+              //                 pricePerItem = (widget.product['price'] *
+              //                         quantityToAddToCart)
+              //                     .toDouble();
+              //               }
+              //             });
+              //           },
+              //           icon: Icon(Icons.remove),
+              //         ),
+              //         Text(quantityToAddToCart.toString()),
+              //         Text(pricePerItem.toString()),
+              //         IconButton(
+              //           onPressed: () {
+              //             setState(() {
+              //               quantityToAddToCart++;
+              //               pricePerItem =
+              //                   (widget.product['price'] * quantityToAddToCart)
+              //                       .toDouble();
+              //             });
+              //           },
+              //           icon: Icon(Icons.add),
+              //         ),
+              //       ],
+              //     ),
 
-                  SizedBox(height: 10),
+                  // SizedBox(height: 10),
 
-                  ElevatedButton(
-                      onPressed: () {
-                        viewCart();
-                      },
-                      child: Text('View Cart')),
+                  // ElevatedButton(
+                  //     onPressed: () {
+                  //       viewCart();
+                  //     },
+                  //     child: Text('View Cart')),
 
-                  SizedBox(height: 10),
+                  // SizedBox(height: 10),
 
-                  //add to cart button
-                  ElevatedButton(
-                    onPressed: () {
-                      addToCart(widget.product['title'],
-                          quantityToAddToCart.toDouble(), pricePerItem);
-                    },
-                    child: Text('Add to cart'),
-                  ),
+                  // //add to cart button
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     addToCart(widget.product['title'],
+                  //         quantityToAddToCart.toDouble(), pricePerItem);
+                  //   },
+                  //   child: Text('Add to cart'),
+                  // ),
 
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     addToFavorites(
+                  //         widget.product['title'], widget.product['price']);
+                  //   },
+                  //   child: Text('Add to favs'),
+                  // ),
                   SizedBox(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await showDialog<void>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('Write a review'),
-                            content: TextField(
-                              controller: widget._reviewController,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Review',
-                              ),
+                    child: Container(
+                      margin: EdgeInsets.only(top: 20 , bottom: 20),
+                      child: ElevatedButton(
+                        style: (
+                          ElevatedButton.styleFrom(
+                            foregroundColor: Color.fromARGB(255, 255, 255, 255),
+                            backgroundColor: Color.fromARGB(255, 30, 19, 0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32.0),
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text('Cancel'),
+                          )
+                        ),
+                                   
+                        onPressed: () async {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                               titleTextStyle: TextStyle(
+                                color: Color.fromARGB(255, 30, 19, 0),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  if (widget
-                                      ._reviewController.text.isNotEmpty) {
-                                    addReview();
-                                  } else {
-                                    print('Review is empty');
-                                  }
-                                },
-                                child: Text('Submit'),
+                              title: Container(
+                                alignment: Alignment.center,
+                                child: Text('Write a review')),
+                              content: TextField(
+                                controller: widget._reviewController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Review',
+                                ),
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: Text('Write a review'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (widget
+                                        ._reviewController.text.isNotEmpty) {
+                                      addReview();
+                                    } else {
+                                      print('Review is empty');
+                                    }
+                                  },
+                                  child: Text('Submit'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: Text('Write a review'),
+                      ),
                     ),
                   ),
                   // SizedBox(height: 50),
@@ -544,6 +685,6 @@ class _ViewItemState extends State<ViewItem> {
               ),
             ],
           ),
-        ));
+        )));
   }
 }

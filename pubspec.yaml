@@ -58,6 +58,7 @@ dependencies:
   http: ^0.13.6
   path_provider: ^2.0.15
   path: ^1.8.3
+  bootstrap_icons: ^1.11.1
   #date_field: ^3.0.5
 
 dev_dependencies:
@@ -89,8 +90,11 @@ flutter:
     
       - assets/images/book1.jpg
       - assets/images/book2.jpg
-      - assets/images/book3jpg.jpg
+      - assets/images/book3.jpg
       - assets/images/book4.jpg
+      - assets/images/book5.jpg
+      - assets/images/book6.jpg
+      - assets/images/book7.jpg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
