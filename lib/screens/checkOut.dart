@@ -22,7 +22,7 @@ void initState() {
 }
   
 Future<void> Delivery(BuildContext context) async {
-  const userEmail = 'userEmail'; // This should be your actual user's email address
+  const userEmail = 'userEmail'; 
   try {
     // Check if user has stored location details in the database
     DocumentReference documentReference =

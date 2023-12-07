@@ -1,4 +1,5 @@
 import 'package:bookstop/fetchProducts.dart';
+import 'package:bookstop/screens/favorites.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -82,7 +83,11 @@ class _ViewItemState extends State<ViewItem> {
           'review': doc['review'],
           'reviewCreatedAt': doc['reviewCreatedAt'],
           'numberOfLikesPerReview': doc['numberOfLikesPerReview'],
+          'userEmail': doc['userEmail'],
         };
+        if (doc['userEmail'] == userEmail) {
+          reviewsByUser.add(doc['reviewId']);
+        }
         reviews.add(reviewData);
       });
 
@@ -339,62 +344,86 @@ class _ViewItemState extends State<ViewItem> {
               ),
 
               Container(
-                  child: Row(children: [
-                //quantity buttons
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              if (quantityToAddToCart > 1) {
-                                quantityToAddToCart--;
-                                pricePerItem = (widget.product['price'] *
-                                        quantityToAddToCart)
-                                    .toDouble();
-                              }
-                            });
-                          },
-                          icon: Icon(Icons.remove),
-                        ),
-                        Text(quantityToAddToCart.toString()),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              quantityToAddToCart++;
-                              pricePerItem = (widget.product['price'] *
-                                      quantityToAddToCart)
-                                  .toDouble();
-                            });
-                          },
-                          icon: Icon(Icons.add),
-                        ),
-                        Text(pricePerItem.toString()),
-                      ],
+                  margin: EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Color.fromARGB(255, 30, 19, 0),
+                      width: 1.0,
                     ),
-                  ],
-                ),
-                IconButton(
-                  
-                  icon: Icon(BootstrapIcons.cart),
-                 
-                  onPressed: () {
-                    addToCart(widget.product['title'],
-                        quantityToAddToCart.toDouble(), pricePerItem);
-                  },
-               
-                ),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        //quantity buttons
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              children: [
+                                IconButton(
+                                  
+                                  onPressed: () {
+                                    setState(() {
+                                      if (quantityToAddToCart > 1) {
+                                        quantityToAddToCart--;
+                                        pricePerItem =
+                                            (widget.product['price'] *
+                                                    quantityToAddToCart)
+                                                .toDouble();
+                                      }
+                                    });
+                                  },
+                                  icon: Icon(
+                                    Icons.remove,
+                                    color: Color.fromARGB(255, 255, 255, 255),
+                                  ),
+                                ),
+                                Text(quantityToAddToCart.toString(),
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      quantityToAddToCart++;
+                                      pricePerItem = (widget.product['price'] *
+                                              quantityToAddToCart)
+                                          .toDouble();
+                                    });
+                                  },
+                                  icon: Icon(Icons.add ,   color: Color.fromARGB(255, 255, 255, 255)),
+                                ),
+                                Text(pricePerItem.toString()
+                                ,style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(BootstrapIcons.cart 
+                          ,  color: Color.fromARGB(255, 255, 255, 255,)),
+                          
+                          onPressed: () {
+                            addToCart(widget.product['title'],
+                                quantityToAddToCart.toDouble(), pricePerItem);
+                          },
+                        ),
 
-                IconButton(
-                  icon: Icon(BootstrapIcons.heart),
-                  onPressed: () {
-                    addToFavorites(
-                        widget.product['title'], widget.product['price']);
-                  },
-                ),
-              ])),
+                        IconButton(
+                          icon: Icon(BootstrapIcons.heart, 
+                          color: Color.fromARGB(255, 255, 255, 255)),
+                          onPressed: () {
+                            addToFavorites(widget.product['title'],
+                                widget.product['price']);
+                          },
+                        ),
+                      ])),
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -410,95 +439,45 @@ class _ViewItemState extends State<ViewItem> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-              //     Column(
-              //       children: [
-              //         IconButton(
-              //           onPressed: () {
-              //             setState(() {
-              //               if (quantityToAddToCart > 1) {
-              //                 quantityToAddToCart--;
-              //                 pricePerItem = (widget.product['price'] *
-              //                         quantityToAddToCart)
-              //                     .toDouble();
-              //               }
-              //             });
-              //           },
-              //           icon: Icon(Icons.remove),
-              //         ),
-              //         Text(quantityToAddToCart.toString()),
-              //         Text(pricePerItem.toString()),
-              //         IconButton(
-              //           onPressed: () {
-              //             setState(() {
-              //               quantityToAddToCart++;
-              //               pricePerItem =
-              //                   (widget.product['price'] * quantityToAddToCart)
-              //                       .toDouble();
-              //             });
-              //           },
-              //           icon: Icon(Icons.add),
-              //         ),
-              //       ],
-              //     ),
-
-                  // SizedBox(height: 10),
-
-                  // ElevatedButton(
-                  //     onPressed: () {
-                  //       viewCart();
-                  //     },
-                  //     child: Text('View Cart')),
-
-                  // SizedBox(height: 10),
-
-                  // //add to cart button
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     addToCart(widget.product['title'],
-                  //         quantityToAddToCart.toDouble(), pricePerItem);
-                  //   },
-                  //   child: Text('Add to cart'),
-                  // ),
-
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     addToFavorites(
-                  //         widget.product['title'], widget.product['price']);
-                  //   },
-                  //   child: Text('Add to favs'),
-                  // ),
+                
                   SizedBox(
                     child: Container(
-                      margin: EdgeInsets.only(top: 20 , bottom: 20),
+                      margin: EdgeInsets.only(top: 20, bottom: 20),
                       child: ElevatedButton(
-                        style: (
-                          ElevatedButton.styleFrom(
-                            foregroundColor: Color.fromARGB(255, 255, 255, 255),
-                            backgroundColor: Color.fromARGB(255, 30, 19, 0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32.0),
-                            ),
-                          )
-                        ),
-                                   
+                        style: (ElevatedButton.styleFrom(
+                          foregroundColor: Color.fromARGB(255, 255, 255, 255),
+                          backgroundColor: Color.fromARGB(255, 30, 19, 0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32.0),
+                          ),
+                        )),
                         onPressed: () async {
                           await showDialog<void>(
                             context: context,
                             builder: (context) => AlertDialog(
-                               titleTextStyle: TextStyle(
+                              titleTextStyle: TextStyle(
                                 color: Color.fromARGB(255, 30, 19, 0),
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                
                               ),
+                              surfaceTintColor: Color.fromARGB(255, 0, 0, 0),
                               title: Container(
-                                alignment: Alignment.center,
-                                child: Text('Write a review')),
+                                  alignment: Alignment.center,
+                                  child: Text('Write a review')),
                               content: TextField(
                                 controller: widget._reviewController,
                                 decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromARGB(255, 30, 19, 0),
+                                        width: 2.0),
+                                  ),
                                   border: OutlineInputBorder(),
                                   labelText: 'Review',
+                                  labelStyle: TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                               actions: [
@@ -527,20 +506,7 @@ class _ViewItemState extends State<ViewItem> {
                       ),
                     ),
                   ),
-                  // SizedBox(height: 50),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  //   children: [
-                  //     ElevatedButton(
-                  //       onPressed: () {
-                  //         setState(() {
-                  //           filterReviewsBasedOnNewest();
-                  //         });
-                  //       },
-                  //       child: Text('Sort by newest'),
-                  //     ),
-                  //   ],
-                  // ),
+              
                   Container(
                       child: FutureBuilder<List<Map<String, dynamic>>>(
                     future: fetchReviews(),
@@ -565,37 +531,48 @@ class _ViewItemState extends State<ViewItem> {
                             }
 
                             List<Widget> buttons = [
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (!isReviewLiked) {
-                                    // Like the review if it's not already liked
-                                    likeReview(reviewId);
-                                    setState(() {
-                                      isLikedReviews.add(reviewId);
-                                    });
-                                  } else {
-                                    // Undo like if it's already liked
-                                    undoLike(reviewId);
-                                    setState(() {
-                                      isLikedReviews.remove(reviewId);
-                                    });
-                                  }
-                                },
-                                child:
-                                    Text(isReviewLiked ? 'Undo Like' : 'Like'),
-                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    if (!isReviewLiked) {
+                                      // Like the review if it's not already liked
+                                      likeReview(reviewId);
+                                      setState(() {
+                                        isLikedReviews.add(reviewId);
+                                      });
+                                    } else {
+                                      // Undo like if it's already liked
+                                      undoLike(reviewId);
+                                      setState(() {
+                                        isLikedReviews.remove(reviewId);
+                                      });
+                                    }
+                                  },
+                                  icon: Icon(isReviewLiked
+                                      ? BootstrapIcons.hand_thumbs_up_fill
+                                      : BootstrapIcons.hand_thumbs_up)
+                                  // Text(isReviewLiked ? 'Undo Like' : 'Like'),
+                                  ),
                             ];
 
                             if (isReviewByUser) {
                               buttons.add(
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Delete the review
-                                    DeleteReview(
-                                      reviewId,
-                                    );
-                                  },
-                                  child: Text('Delete'),
+                                Row(
+                                  children: [
+                                    Text(
+                                      snapshot.data![index]
+                                              ['numberOfLikesPerReview']
+                                          .toString(),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        // Delete the review
+                                        DeleteReview(
+                                          reviewId,
+                                        );
+                                      },
+                                      icon: Icon(BootstrapIcons.trash),
+                                    ),
+                                  ],
                                 ),
                               );
                             }
@@ -605,7 +582,7 @@ class _ViewItemState extends State<ViewItem> {
                               TextEditingController _reviewController =
                                   TextEditingController(text: oldReview);
                               buttons.add(
-                                ElevatedButton(
+                                IconButton(
                                   onPressed: () {
                                     showDialog(
                                       context: context,
@@ -644,34 +621,43 @@ class _ViewItemState extends State<ViewItem> {
                                       ),
                                     );
                                   },
-                                  child: Text('Edit'),
+                                  icon: Icon(BootstrapIcons.pencil),
                                 ),
                               );
                             }
 
-                            return Column(
-                              children: [
-                                Text(
-                                  snapshot.data![index]['review'],
+                            return Container(
+                                margin: EdgeInsets.only(bottom: 20),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Color.fromARGB(255, 30, 19, 0),
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                SizedBox(height: 20),
-                                Text(
-                                  snapshot.data![index]['reviewCreatedAt']
-                                      .toString(),
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  snapshot.data![index]
-                                          ['numberOfLikesPerReview']
-                                      .toString(),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: buttons,
-                                ),
-                              ],
-                            );
+                                child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                snapshot.data![index]['review'],
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                              )),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: buttons,
+                                        ),
+                                      ],
+                                    )));
                           },
                         );
                       } else {
@@ -685,6 +671,54 @@ class _ViewItemState extends State<ViewItem> {
               ),
             ],
           ),
-        )));
+        )
+        ),  
+
+         bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.house),
+              label: 'Home',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.heart),
+              label: 'Favorites',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.cart),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.person),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+          ],
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => favorites(userEmail: userEmail),
+                ),
+              );
+            }
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+          },
+        )
+        )
+        ;
   }
 }
