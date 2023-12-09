@@ -218,6 +218,7 @@ class _ViewItemState extends State<ViewItem> {
             'title': title,
             'price': widget.product['price'],
             'productImage': widget.product['image'],
+            'author': widget.product['author'],
           });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Item added to favorites'),
@@ -246,6 +247,7 @@ class _ViewItemState extends State<ViewItem> {
         if (_doc.exists) {
           //if the product exists, update the quantity
           await _collectionRef.doc(title).update({
+            
             'quantity': FieldValue.increment(quantityToAddToCart),
             'price': FieldValue.increment(pricePerItem),
           });

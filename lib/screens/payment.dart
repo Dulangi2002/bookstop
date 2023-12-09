@@ -1,10 +1,25 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:bookstop/screens/summary.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class Payment extends StatefulWidget {
   final String userEmail;
-  Payment({super.key, required this.userEmail});
+  final String country;
+  final String city;
+  final String street;
+  final String province;
+  Payment(
+      {super.key,
+      required this.userEmail,
+      required this.country,
+      required this.city,
+      required this.street,
+      required this.province});
 
   @override
   State<Payment> createState() => _PaymentState();
@@ -16,18 +31,19 @@ class _PaymentState extends State<Payment> {
   TextEditingController cardHolderNameController = TextEditingController();
   TextEditingController expiryDateController = TextEditingController();
   TextEditingController cvvController = TextEditingController();
-  List<bool> isCheckedList = []; 
-  late Future<List<DocumentSnapshot>> cardDetails; 
+  List isCheckedList = [];
+  List<String> cardType = [
+    'Visa',
+    'MasterCard',
+  ];
+  String selectedCardType = '';
+
   @override
   void initState() {
     super.initState();
-    cardDetails = fetchCardDetails();
-    isCheckedList = List<bool>.filled(
-        0, false, growable: true);
-    
+    fetchCardDetails();
 
-
-
+    isCheckedList = [];
   }
 
   Future<void> COD() async {
@@ -45,11 +61,16 @@ class _PaymentState extends State<Payment> {
           documentReference.collection('CardDetails');
 
       await collectionReference.add({
+        'cardType': selectedCardType,
         'cardNumber': cardNumberController.text,
         'cardHolderName': cardHolderNameController.text,
         'expiryDate': expiryDateController.text,
         'cvv': cvvController.text,
       });
+      cardNumberController.clear();
+      cardHolderNameController.clear();
+      expiryDateController.clear();
+      cvvController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Card added successfully'),
@@ -65,7 +86,6 @@ class _PaymentState extends State<Payment> {
     }
   }
 
- 
   Future<List<DocumentSnapshot>> fetchCardDetails() async {
     try {
       String userEmail = widget.userEmail;
@@ -75,13 +95,13 @@ class _PaymentState extends State<Payment> {
           documentReference.collection('CardDetails');
 
       QuerySnapshot querySnapshot = await collectionReference.get();
+
       return querySnapshot.docs; // Return the list of card details documents
     } catch (error) {
       print(error);
       return []; // Return an empty list in case of an error
     }
   }
-
 
   Future<void> DeleteCard(String id) async {
     try {
@@ -109,93 +129,273 @@ class _PaymentState extends State<Payment> {
 
   Future<void> Purchase() async {
     try {
-      String userEmail = widget.userEmail;
+      String userEmail =
+          widget.userEmail; // Assuming widget.userEmail is defined
       DocumentReference documentReference =
           FirebaseFirestore.instance.collection('Users').doc(userEmail);
-      CollectionReference ordersCollection =
-          documentReference.collection('Orders');
+      CollectionReference cart = documentReference.collection('Cart');
 
-      CollectionReference PurchaseHistoryCollection =
-          documentReference.collection('PurchaseHistory');
+      CollectionReference orders = documentReference.collection('Orders');
 
-      QuerySnapshot ordersSnapshot = await ordersCollection.get();
+      //get the documents in the cart collection
+      QuerySnapshot cartSnapShot = await cart.get();
 
-      for (QueryDocumentSnapshot order in ordersSnapshot.docs) {
-        await PurchaseHistoryCollection.add({
-          'productName': order['productName'],
-          'productPrice': order['productPrice'],
-          'productQuantity': order['productQuantity'],
-          'productImage': order['productImage'],
-        });
+List<Map<String, dynamic>> orderItems = [];
 
-        await ordersCollection.doc(order.id).delete();
-      }
-      ;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Purchase successful'),
-        ),
+      for (QueryDocumentSnapshot cartItem in 
+       cartSnapShot.docs
+      ) {
+  // Extract fields from each cart item
+  String documentID = cartItem.id;
+  int quantity = cartItem['quantity']; // Replace with the actual field name
+  double price = cartItem['price']; // Replace with the actual field name
+  String image = cartItem['image']; // Replace with the actual field name
+
+  // Add the extracted fields to the orderItems list
+  orderItems.add({
+    'documentID': generateRandomId(20),
+    'quantity': quantity,
+    'price': price,
+    'image': image,
+  });
+}
+
+print(orderItems);
+
+
+      DocumentReference newOrder = await orders.add(
+        {
+          'orderItems' : orderItems,
+          'createdAt' : FieldValue.serverTimestamp(),
+        }
       );
+
+
+
     } catch (error) {
       print(error);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error purchasing: $error'),
-        ),
-      );
+      // Handle the error,
     }
   }
+
+  String generateRandomId(int length) {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  final random = Random();
+
+  return String.fromCharCodes(
+    List.generate(length, (index) => chars.codeUnitAt(random.nextInt(chars.length))),
+  );
+}
+
+
 
   @override
   Widget _buildAddCardDialog(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Card'),
-      content: Column(
-        children: [
-          SizedBox(height: 20),
-          TextFormField(
-            controller: cardNumberController,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(19),
-              CardNumberInputFormatter(),
-            ],
-            decoration: InputDecoration(
-              labelText: 'Card Number',
-              hintText: 'xxxx xxxx xxxx xxxx',
-              errorText: validator(cardNumberController.text),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Add a card',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            validator: (value) {
-              if (value!.isEmpty)
-                return 'Please enter a valid card number text';
-              else
-                return null;
-            },
-          ),
-          TextFormField(
-            controller: cardHolderNameController,
-            decoration: InputDecoration(
-              labelText: 'Card Holder Name',
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: cardType.length,
+                  itemBuilder: (context, index) {
+                    return CheckboxListTile(
+                      title: Text(cardType[index]),
+                      value: selectedCardType == cardType[index],
+                      onChanged: (value) {
+                        print(
+                            'Selected card type: ${cardType[index]}'); // Print the selected card type to the console
+
+                        setState(() {
+                          selectedCardType = cardType[index];
+                        });
+                      },
+                    );
+                  },
+                );
+              },
             ),
-          ),
-          TextFormField(
-            controller: expiryDateController,
-            decoration: InputDecoration(
-              labelText: 'Expiry Date',
+            Container(
+              margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: TextFormField(
+                cursorColor: Colors.black,
+                cursorHeight: 20,
+                controller: cardNumberController,
+                inputFormatters: [
+                  CardNumberInputFormatter(),
+                ],
+                decoration: InputDecoration(
+                  labelText: 'Card Number',
+                  hintText: 'xxxx xxxx xxxx xxxx',
+                  // errorText: validator(cardNumberController.text),
+                  enabledBorder:
+                      OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                ),
+                validator: (value) {
+                  if (value!.isEmpty)
+                    return 'Please enter a valid card number text';
+                  else
+                    return null;
+                },
+              ),
             ),
-          ),
-          TextFormField(
-            controller: cvvController,
-            decoration: InputDecoration(
-              labelText: 'CVV',
+            Container(
+              margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: TextFormField(
+                controller: cardHolderNameController,
+                decoration: InputDecoration(
+                  labelText: 'Card Holder Name',
+                  enabledBorder:
+                      OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                ),
+              ),
             ),
-          ),
-        ],
+            Container(
+              margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: TextFormField(
+                inputFormatters: [
+                  ExpiryDateValidator(),
+                ],
+                controller: expiryDateController,
+                decoration: InputDecoration(
+                  labelText: 'Expiry Date',
+                  enabledBorder:
+                      OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: TextFormField(
+                inputFormatters: [
+                  CVVValidator(),
+                ],
+                controller: cvvController,
+                decoration: InputDecoration(
+                  labelText: 'CVV',
+                  enabledBorder:
+                      OutlineInputBorder(borderSide: BorderSide(width: 2)),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         ElevatedButton(
           onPressed: () {
+            if (selectedCardType == '') {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please select a card type'),
+                ),
+              );
+              return;
+            }
+            if (cardNumberController.text.length < 16 ||
+                expiryDateController.text.length < 4 ||
+                cvvController.text.length < 3) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please enter valid card details'),
+                ),
+              );
+              return;
+            }
+            if (cardNumberController.text.isEmpty ||
+                cardHolderNameController.text.isEmpty ||
+                expiryDateController.text.isEmpty ||
+                cvvController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please enter all card details'),
+                ),
+              );
+              return;
+            }
+            if (cardNumberController.text.length < 16) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please enter a valid card number'),
+                ),
+              );
+              return;
+            }
+            if (cvvController.text.length < 3) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please enter a valid CVV'),
+                ),
+              );
+              return;
+            }
+            if (expiryDateController.text.length < 4) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please enter a valid expiry date'),
+                ),
+              );
+              return;
+            }
+
             addCard();
+            setState(() {
+              cardNumberController.clear();
+              cardHolderNameController.clear();
+              expiryDateController.clear();
+              cvvController.clear();
+              fetchCardDetails();
+            });
             Navigator.pop(context);
           },
           child: Text('Create'),
@@ -227,26 +427,42 @@ class _PaymentState extends State<Payment> {
       appBar: AppBar(
         title: Text('Payment'),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Payment'),
             Column(
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isAddCardClicked = true;
-                    });
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return _buildAddCardDialog(context);
-                      },
-                    );
-                  },
-                  child: Text('Add a card'),
+                Container(
+                  margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        textStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        fixedSize: Size(500, 60),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0),
+                        ),
+                        side: BorderSide(
+                          width: 2,
+                          color: Colors.black,
+                        )),
+                    onPressed: () {
+                      setState(() {
+                        isAddCardClicked = true;
+                      });
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return _buildAddCardDialog(context);
+                        },
+                      );
+                    },
+                    child: Text('Add a card'),
+                  ),
                 ),
                 // Rest of your widget tree
               ],
@@ -254,64 +470,150 @@ class _PaymentState extends State<Payment> {
             Column(
               //display the cards
               children: [
-              SizedBox(
-                child: FutureBuilder<List<DocumentSnapshot>>(
-                    future: cardDetails,
+                Container(
+                  height: 500,
+                  margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+                  child: FutureBuilder<List<DocumentSnapshot>>(
+                    future: fetchCardDetails(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator(); // Show loading indicator while fetching data
                       } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}'); // Show error message if fetching fails
-                      } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                        return Text(
+                            'Error: ${snapshot.error}'); // Show error message if fetching fails
+                      } else if (snapshot.hasData &&
+                          snapshot.data!.isNotEmpty) {
                         // If data is available, build the ListView with card details
                         return Container(
                           height: 200,
                           child: ListView.builder(
                             itemCount: snapshot.data!.length,
                             itemBuilder: (context, index) {
-                                        DocumentSnapshot documentSnapshot = snapshot.data![index];
-                                        bool isChecked = isCheckedList.length > index ? isCheckedList[index] : false;
-                                      
-                                        return Card(
-                                          child: CheckboxListTile(
-                                            checkColor: Colors.white,
-                                            fillColor: MaterialStateProperty.resolveWith(getColor),
-                                            title: Text(documentSnapshot['cardNumber']),
-                                            subtitle: Text(documentSnapshot['cardHolderName']),
+                              DocumentSnapshot documentSnapshot =
+                                  snapshot.data![index];
+                              bool isChecked = false;
+
+                              return Container(
+                                height: 180,
+                                margin: EdgeInsets.only(top: 10, bottom: 10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      child: StatefulBuilder(builder:
+                                          (BuildContext context,
+                                              StateSetter setState) {
+                                        return Container(
+                                          child: Checkbox(
+                                            activeColor: Colors.white,
+                                            checkColor: Colors.black,
                                             value: isChecked,
-                                            onChanged: (bool? value) {
+                                            onChanged: (
+                                              bool? value,
+                                            ) {
                                               setState(() {
-                                                isCheckedList[index] = value!;
+                                                isCheckedList.clear();
+                                                isChecked = value!;
+
+                                                if (isChecked) {
+                                                  isCheckedList.add(
+                                                    documentSnapshot[
+                                                        'cardNumber'],
+                                                  );
+                                                  print(
+                                                      'Checked list: $isCheckedList');
+                                                }
                                               });
                                             },
-                                            controlAffinity: ListTileControlAffinity.trailing,
-                                            secondary: IconButton(
-                                              icon: Icon(Icons.delete),
-                                              onPressed: () {
-                                              DeleteCard(documentSnapshot.id);
-                                              },
-                                            ),
                                           ),
                                         );
+                                      }),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (documentSnapshot['cardType'] ==
+                                            'Visa')
+                                          Container(
+                                            child: Image.asset(
+                                              'assets/images/visa.jpg',
+                                              width: 60,
+                                              height: 60,
+                                            ),
+                                          ),
+                                        if (documentSnapshot['cardType'] ==
+                                            'MasterCard')
+                                          Image.asset(
+                                            'assets/images/mastercard.jpg',
+                                            width: 60,
+                                            height: 60,
+                                          ),
+                                        Text(documentSnapshot['cardNumber'],
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        Text(documentSnapshot['cardHolderName'],
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                            )),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 100,
+                                              child: Text(
+                                                  documentSnapshot[
+                                                      'expiryDate'],
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                  )),
+                                            ),
+                                            Text(documentSnapshot['cvv'],
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                )),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    Container(
+                                      alignment: Alignment.topRight,
+                                      child: IconButton(
+                                        icon: Icon(Icons.delete),
+                                        onPressed: () {
+                                          DeleteCard(documentSnapshot.id);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
                           ),
                         );
                       } else {
-                        return Text('No card details available.'); // Show message if there are no card details
+                        return Text(
+                            'No card details available.'); // Show message if there are no card details
                       }
                     },
                   ),
-              ),
+                ),
               ],
             ),
-            (isCheckedList.length > 0 && isCheckedList.contains(true))
+            (isCheckedList.length > 0)
                 ? ElevatedButton(
                     onPressed: () {
                       Purchase();
                     },
                     child: Text('Purchase'),
                   )
-                : SizedBox(), 
+                : SizedBox(),
           ],
         ),
       ),
@@ -331,7 +633,10 @@ class CardNumberInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    String formattedText = newValue.text.replaceAll(RegExp(r'\s'), '');
+    String formattedText = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (formattedText.length > 16) {
+      return oldValue;
+    }
     List<String> chunks = [];
     for (int i = 0; i < formattedText.length; i += 4) {
       int end = i + 4;
@@ -340,8 +645,65 @@ class CardNumberInputFormatter extends TextInputFormatter {
       }
       chunks.add(formattedText.substring(i, end));
     }
+
     formattedText = chunks.join(' ');
 
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+}
+
+class ExpiryDateValidator extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    String formattedText = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    if (formattedText.length > 4) {
+      return oldValue;
+    }
+
+    List<String> chunks = [];
+
+    for (int i = 0; i < formattedText.length; i += 2) {
+      int end = i + 2;
+      if (end >= formattedText.length) {
+        end = formattedText.length;
+      }
+      chunks.add(formattedText.substring(i, end));
+    }
+
+    formattedText = chunks.join('/');
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+}
+
+class CVVValidator extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    String formattedText = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    if (formattedText.length > 3) {
+      return oldValue;
+    }
+
+    List<String> chunks = [];
+
+    for (int i = 0; i < formattedText.length; i += 1) {
+      int end = i + 1;
+      if (end >= formattedText.length) {
+        end = formattedText.length;
+      }
+      chunks.add(formattedText.substring(i, end));
+    }
+
+    formattedText = chunks.join('');
     return TextEditingValue(
       text: formattedText,
       selection: TextSelection.collapsed(offset: formattedText.length),

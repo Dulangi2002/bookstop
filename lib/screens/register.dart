@@ -95,19 +95,7 @@ class _registerState extends State<register> {
         Container(
           width: MediaQuery.of(context).size.width,
           height: 800,
-          // decoration: BoxDecoration(
-          //   gradient: LinearGradient(
-          //     begin: Alignment.topCenter,
-          //     end: Alignment.bottomCenter,
-          //     colors: [
-          //       Color.fromRGBO(155, 205, 210, 1),
-          //       Color.fromRGBO(155, 205, 210, 1),
-          //     ],
-          //   ),
-          //   borderRadius: BorderRadius.only(
-          //     bottomLeft: Radius.circular(90),
-          //   ),
-          // ),
+         
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -116,27 +104,27 @@ class _registerState extends State<register> {
                 child: TextFormField(
                   cursorColor: Colors.black,
                   cursorHeight: 20,
-                  
                   controller: emailcontroller,
                   decoration: InputDecoration(
                     enabledBorder:
                         OutlineInputBorder(borderSide: BorderSide(width: 2)),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: Colors.black,
+                      ),
                     ),
                     labelText: 'Username',
                     labelStyle: TextStyle(
                       fontSize: 12,
                     ),
                     floatingLabelBehavior: FloatingLabelBehavior.never,
-                    
-                    
                   ),
                 ),
               ),
               Container(
                 margin:
-                EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
+                    EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 15),
                 child: TextFormField(
                   cursorColor: Colors.black,
                   controller: passwordController,
@@ -144,41 +132,36 @@ class _registerState extends State<register> {
                     enabledBorder:
                         OutlineInputBorder(borderSide: BorderSide(width: 2)),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: Colors.black,
+                      ),
                     ),
                     labelText: 'Password',
                     labelStyle: TextStyle(
                       fontSize: 12,
                     ),
                     floatingLabelBehavior: FloatingLabelBehavior.never,
-                    
                   ),
                 ),
               ),
               Container(
                 margin: EdgeInsets.only(top: 10, left: 15, right: 15),
                 child: ElevatedButton(
-                 
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                     foregroundColor: Colors.white,
-
-                    textStyle: TextStyle(
-                     
-                      fontWeight: FontWeight.bold,
-                    ) ,
-        
-                  
-                    fixedSize: Size(500, 60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                  
-                    ),
-                     side: BorderSide(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      fixedSize: Size(500, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      side: BorderSide(
                         width: 2,
                         color: Colors.black,
-                      )
-                  ),
+                      )),
                   //add the same styling as the input fields
 
                   onPressed: () {
@@ -188,33 +171,29 @@ class _registerState extends State<register> {
                 ),
               ),
               Container(
-              margin: EdgeInsets.only(top: 10),
-          
-              height: 50,
-              child: TextButton(
-                          style: ButtonStyle(
-                            foregroundColor:
-                                MaterialStateProperty.all<Color>(Colors.black),
-                            overlayColor: MaterialStateProperty.all<Color>(
-                                Colors.transparent),
-                          ),
-                           onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => login()),
-                  );
-                },
-                child:Text('Already have an account? Sign in',
-                
-                style: TextStyle(
-                  color: Colors.black,
-                  decoration: TextDecoration.underline,
+                margin: EdgeInsets.only(top: 10),
+                height: 50,
+                child: TextButton(
+                  style: ButtonStyle(
+                    foregroundColor:
+                        MaterialStateProperty.all<Color>(Colors.black),
+                    overlayColor:
+                        MaterialStateProperty.all<Color>(Colors.transparent),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => login()),
+                    );
+                  },
+                  child: Text(
+                    'Already have an account? Sign in',
+                    style: TextStyle(
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
-
-                ),
-              ),
-              
-             
               )
             ],
           ),
