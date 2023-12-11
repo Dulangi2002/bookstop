@@ -81,8 +81,7 @@ class _summaryState extends State<summary> {
     int visibleDigits = 4;
 
     String maskedPart = '*' * (totalDigits - visibleDigits);
-    String visiblePart = cardnumber.substring(totalDigits - visibleDigits);
-
+    String visiblePart = cardNumber.substring(totalDigits - visibleDigits);
     return maskedPart + visiblePart;
   }
 
@@ -92,89 +91,126 @@ class _summaryState extends State<summary> {
       appBar: AppBar(
         title: Text('Summary'),
       ),
-      body: Column(children: [
-        if (widget.country != null ||
-            widget.city != null ||
-            widget.street != null ||
-            widget.province != null)
-          Column(
+      body: Container(
+        margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+        child: Column(
+            
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Delivery details'),
-              if (widget.country != null) Text('Country: ${widget.country}'),
-              if (widget.city != null) Text('City: ${widget.city}'),
-              if (widget.street != null) Text('Street: ${widget.street}'),
-              if (widget.province != null) Text('Province: ${widget.province}'),
-            ],
+          children: [
+          if (widget.country != null ||
+              widget.city != null ||
+              widget.street != null ||
+              widget.province != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Delivery details' , 
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                
+                ),
+                if (widget.country != null) Text('Country: ${widget.country}'),
+                if (widget.city != null) Text('City: ${widget.city}'),
+                if (widget.street != null) Text('Street: ${widget.street}'),
+                if (widget.province != null) Text('Province: ${widget.province}'),
+              ],
+            ),
+          Text('Order summary' ,
+          style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-        Text('Order summary'),
-        Column(children: [
-          ListView.builder(
-              shrinkWrap: true,
-              itemCount: orderDetails.length,
-              itemBuilder: (context, index) {
-                return Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/${orderDetails[index]['image']}',
-                      width: 100,
-                      height: 100,
+          Column(children: [
+            ListView.builder(
+                shrinkWrap: true,
+                itemCount: orderDetails.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    padding: EdgeInsets.only(top:8 , bottom: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    Column(
+                    child: Row(
+                      
                       children: [
-                        Text(
-                          '${orderDetails[index]['title']}',
+                        Image.asset(
+                          'assets/images/${orderDetails[index]['image']}',
+                          width: 100,
+                          height: 100,
                         ),
-                        Text(
-                          '${orderDetails[index]['price']}',
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${orderDetails[index]['title']}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'LKR ${orderDetails[index]['price']}',
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                );
-              }),
-        ]),
-        Text('Payment details'),
-        Container(
-          child: Column(
-            children: [
-              Text('Payment details: '),
-              Text(
-                'Total: ' + total + ' LKR',
-              ),
-              Text(
-                'Card Number: ' + maskCardNumber(cardnumber),
-              ),
-            ],
+                  );
+                }),
+          ]),
+          Text('Payment details' , 
+          style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),  
           ),
-        ),
-        Container(
-          margin: EdgeInsets.only(top: 10, left: 15, right: 15),
-          child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                  ),
-                  side: BorderSide(
-                    width: 2,
-                    color: Colors.black,
-                  )),
-              onPressed: () => {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HomeScreen(),
-                      ),
-                    )
-                  },
-              child: Text(' Continue Shopping')),
-        ),
-      ]),
+          Container(
+            child: Column(
+              children: [
+                Text(
+                  'Total: LKR '+  total,
+                ),
+                Text(
+                  'Card Number: ' + maskCardNumber(cardnumber),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 10),
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                   
+                    side: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    )),
+                onPressed: () => {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(),
+                        ),
+                      )
+                    },
+                child: Text(' Continue Shopping')),
+          ),
+        ]),
+      ),
     );
   }
 }

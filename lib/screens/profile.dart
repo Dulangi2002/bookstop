@@ -17,6 +17,12 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   late String userEmail;
 
+  @override
+  void initState() {
+    super.initState();
+    userEmail = widget.userEmail;
+  } 
+
   Future<void> EditEmail() async {
     try {
       DocumentReference documentReference =

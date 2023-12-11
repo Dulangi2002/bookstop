@@ -6,6 +6,7 @@ import 'package:bookstop/fetchProducts.dart';
 import 'package:bookstop/screens/cart.dart';
 import 'package:bookstop/screens/favorites.dart';
 import 'package:bookstop/screens/fetchData.dart';
+import 'package:bookstop/screens/profile.dart';
 import 'package:bookstop/screens/viewItem.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -194,23 +195,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontWeight: FontWeight.bold,
                                         
 
-                                        // Add other style properties as needed
                                       ),
                                     ),
                                   ),
-                                  // ElevatedButton(
-                                  //   onPressed: () async {
-                                  //     await Navigator.push(
-                                  //       context,
-                                  //       MaterialPageRoute(
-                                  //         builder: (context) => ViewItem(
-                                  //           product: products[index],
-                                  //         ),
-                                  //       ),
-                                  //     );
-                                  //   },
-                                  //   child: Text('View'),
-                                  // ),
+                                
                                 ]),
                               ),
                             ),
@@ -276,7 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
 
-                                        // Add other style properties as needed
                                       ),
                                     ),
                                   ),
@@ -289,24 +276,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
 
-                                        // Add other style properties as needed
                                       ),
                                     ),
                                   ),
 
-                                  // ElevatedButton(
-                                  //   onPressed: () async {
-                                  //     await Navigator.push(
-                                  //       context,
-                                  //       MaterialPageRoute(
-                                  //         builder: (context) => ViewItem(
-                                  //           product: fantasyreads[index],
-                                  //         ),
-                                  //       ),
-                                  //     );
-                                  //   },
-                                  //   child: Text('View'),
-                                  // ),
+                              
                                 ]),
                               ),
                             ),
@@ -331,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 Container(
-                  height: 350, // Set the desired height or adjust as needed
+                  height: 350,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: newestadditions.length,
@@ -376,7 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
 
-                                        // Add other style properties as needed
                                       ),
                                     ),
                                   ),
@@ -390,24 +363,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
 
-                                        // Add other style properties as needed
                                       ),
                                     ),
                                   ),
 
-                                  // ElevatedButton(
-                                  //   onPressed: () async {
-                                  //     await Navigator.push(
-                                  //       context,
-                                  //       MaterialPageRoute(
-                                  //         builder: (context) => ViewItem(
-                                  //           product: newestadditions[index],
-                                  //         ),
-                                  //       ),
-                                  //     );
-                                  //   },
-                                  //   child: Text('View'),
-                                  // ),
+                                
                                 ],
                               ),
                             ),
@@ -435,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.cart),
-              label: 'Profile',
+              label: 'Cart',
               backgroundColor: Colors.black,
             ),
             BottomNavigationBarItem(
@@ -458,6 +418,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
                     userEmail: userEmail,
                   ),
                 ),

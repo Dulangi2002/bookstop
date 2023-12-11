@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bookstop/screens/locationdetails.dart';
 import 'package:bookstop/screens/summary.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,45 +58,83 @@ class _CheckOutState extends State<CheckOut> {
       String userEmail = widget.userEmail;
       DocumentReference documentReference =
           FirebaseFirestore.instance.collection('Users').doc(userEmail);
-      CollectionReference ordersCollection =
-          documentReference.collection('Orders');
+      CollectionReference cart = documentReference.collection('Cart');
 
-      CollectionReference PurchaseHistoryCollection =
-          documentReference.collection('PurchaseHistory');
+      CollectionReference orders = documentReference.collection('Orders');
 
-      QuerySnapshot ordersSnapshot = await ordersCollection.get();
+      QuerySnapshot cartSnapShot = await cart.get();
 
-      for (var order in ordersSnapshot.docs) {
-        // Add the order to the purchase history collection
-        await PurchaseHistoryCollection.add(order.data());
+      List<Map<String, dynamic>> orderItems = [];
 
-        // Delete the order from the orders collection
+      for (QueryDocumentSnapshot cartItem in cartSnapShot.docs) {
+        String image = cartItem['productImage'];
+        String title = cartItem['title'];
+        String price = cartItem['price'].toString();
+        String quantity = cartItem['quantity'].toString();
+       
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => summary(
-              orderID: order.id,
-              userEmail: userEmail,
-              country: '',
-              city: '',
-              street: '',
-              province: '',
-            ),
-          ),
-        );
+        orderItems.add({
+          'image': image,
+          'title': title,
+          'price': price,
+          'quantity': quantity,
+          'country': '',
+          'city': '',
+          'street': '',
+          'province': '',
+          'cardNumber': '',
+        });
       }
 
-      ;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Purchase successful'),
+      print(orderItems);
+
+      String orderID = '$userEmail/' + generateRandomId(10);
+      double orderTotal = 0;
+
+      for (Map<String, dynamic> orderItem in orderItems) {
+        orderTotal += double.parse(orderItem['price']) *
+            double.parse(orderItem['quantity']);
+      }
+
+      DocumentReference newOrder = await orders.add({
+        'orderID': orderID,
+        'orderItems': orderItems,
+        'createdAt': FieldValue.serverTimestamp(),
+        'orderTotal': orderTotal,
+      });
+
+      for (QueryDocumentSnapshot cartItem in cartSnapShot.docs) {
+        await cartItem.reference.delete();
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) {
+            return summary(
+              city: '',
+              country: '',
+              street: '',
+              orderID: orderID,
+              province: '',
+              userEmail: widget.userEmail,
+            );
+          },
         ),
       );
-    } catch (e) {
-      print('Error fetching location details: $e');
-      // Handle the error if necessary.
+    } catch (error) {
+      print(error);
     }
+  }
+
+    String generateRandomId(int length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+
+    return String.fromCharCodes(
+      List.generate(
+          length, (index) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
   }
 
   @override

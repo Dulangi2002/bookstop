@@ -210,7 +210,6 @@ class _PaymentState extends State<Payment> {
       );
     } catch (error) {
       print(error);
-      // Handle the error,
     }
   }
 
@@ -249,7 +248,7 @@ class _PaymentState extends State<Payment> {
                       value: selectedCardType == cardType[index],
                       onChanged: (value) {
                         print(
-                            'Selected card type: ${cardType[index]}'); // Print the selected card type to the console
+                            'Selected card type: ${cardType[index]}'); 
 
                         setState(() {
                           selectedCardType = cardType[index];
@@ -554,146 +553,6 @@ class _PaymentState extends State<Payment> {
                 );
               }),
             ),
-
-            // Column(
-            //   //display the cards
-            //   children: [
-            //     Container(
-            //       height: 500,
-            //       margin: EdgeInsets.only(top: 10, left: 15, right: 15),
-            //       child: FutureBuilder<List<DocumentSnapshot>>(
-            //         future: fetchCardDetails(),
-            //         builder: (context, snapshot) {
-            //           if (snapshot.connectionState == ConnectionState.waiting) {
-            //             return CircularProgressIndicator(); // Show loading indicator while fetching data
-            //           } else if (snapshot.hasError) {
-            //             return Text(
-            //                 'Error: ${snapshot.error}'); // Show error message if fetching fails
-            //           } else if (snapshot.hasData &&
-            //               snapshot.data!.isNotEmpty) {
-            //             // If data is available, build the ListView with card details
-            //             return Container(
-            //               height: 200,
-            //               child: ListView.builder(
-            //                 itemCount: snapshot.data!.length,
-            //                 itemBuilder: (context, index) {
-            //                   DocumentSnapshot documentSnapshot =
-            //                       snapshot.data![index];
-            //                   bool isChecked = false;
-
-            //                   return Container(
-            //                     height: 180,
-            //                     margin: EdgeInsets.only(top: 10, bottom: 10),
-            //                     decoration: BoxDecoration(
-            //                       border: Border.all(
-            //                         color: Colors.grey,
-            //                       ),
-            //                       borderRadius: BorderRadius.circular(16),
-            //                     ),
-            //                     child: Row(
-            //                       children: [
-            //                         Container(
-            //                           child: StatefulBuilder(builder:
-            //                               (BuildContext context,
-            //                                   StateSetter setState) {
-            //                             return Container(
-            //                               child: Checkbox(
-            //                                 activeColor: Colors.white,
-            //                                 checkColor: Colors.black,
-            //                                 value: isChecked,
-            //                                 onChanged: (
-            //                                   bool? value,
-            //                                 ) {
-            //                                   setState(() {
-            //                                     isCheckedList.clear();
-            //                                     isChecked = value!;
-
-            //                                     if (isChecked) {
-            //                                       isCheckedList.add(
-            //                                         documentSnapshot[
-            //                                             'cardNumber'],
-            //                                       );
-            //                                       print(
-            //                                           'Checked list: $isCheckedList');
-            //                                     }
-            //                                   });
-            //                                 },
-            //                               ),
-            //                             );
-            //                           }),
-            //                         ),
-            //                         Column(
-            //                           crossAxisAlignment:
-            //                               CrossAxisAlignment.start,
-            //                           children: [
-            //                             if (documentSnapshot['cardType'] ==
-            //                                 'Visa')
-            //                               Container(
-            //                                 child: Image.asset(
-            //                                   'assets/images/visa.jpg',
-            //                                   width: 60,
-            //                                   height: 60,
-            //                                 ),
-            //                               ),
-            //                             if (documentSnapshot['cardType'] ==
-            //                                 'MasterCard')
-            //                               Image.asset(
-            //                                 'assets/images/mastercard.jpg',
-            //                                 width: 60,
-            //                                 height: 60,
-            //                               ),
-            //                             Text(documentSnapshot['cardNumber'],
-            //                                 style: TextStyle(
-            //                                   fontSize: 20,
-            //                                   fontWeight: FontWeight.bold,
-            //                                 )),
-            //                             Text(documentSnapshot['cardHolderName'],
-            //                                 style: TextStyle(
-            //                                   fontSize: 20,
-            //                                 )),
-            //                             Row(
-            //                               children: [
-            //                                 SizedBox(
-            //                                   width: 100,
-            //                                   child: Text(
-            //                                       documentSnapshot[
-            //                                           'expiryDate'],
-            //                                       style: TextStyle(
-            //                                         fontSize: 14,
-            //                                       )),
-            //                                 ),
-            //                                 Text(documentSnapshot['cvv'],
-            //                                     style: TextStyle(
-            //                                       fontSize: 14,
-            //                                     )),
-            //                               ],
-            //                             ),
-            //                           ],
-            //                         ),
-            //                         Container(
-            //                           alignment: Alignment.topRight,
-            //                           child: IconButton(
-            //                             icon: Icon(Icons.delete),
-            //                             onPressed: () {
-            //                               DeleteCard(documentSnapshot.id);
-            //                             },
-            //                           ),
-            //                         ),
-            //                       ],
-            //                     ),
-            //                   );
-            //                 },
-            //               ),
-            //             );
-            //           } else {
-            //             return Text(
-            //                 'No card details available.'); // Show message if there are no card details
-            //           }
-            //         },
-            //       ),
-            //     ),
-            //   ],
-            // ),
 
             Container(
               margin: EdgeInsets.only(top: 10, left: 15, right: 15),
