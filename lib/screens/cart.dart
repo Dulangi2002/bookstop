@@ -1,13 +1,14 @@
 import 'dart:ffi';
 
 import 'package:bookstop/screens/HomeScreen.dart';
+import 'package:bookstop/screens/favorites.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bookstop/screens/checkOut.dart';
 
 class MyCart extends StatefulWidget {
-  final String userEmail;
+  final String userEmail; 
 
   MyCart({Key? key, required this.userEmail}) : super(key: key);
 
@@ -126,31 +127,30 @@ class _MyCartState extends State<MyCart> {
 
   Future<void> placeOrder() async {
     try {
-      var documentReference = FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userEmail)
-          .collection('Orders')
-          .doc();
+      // var documentReference = FirebaseFirestore.instance
+      //     .collection('Users')
+      //     .doc(userEmail)
+      //     .collection('Orders')
+      //     .doc();
 
-      calculateCartTotal().then((value) {
-        setState(() {
-          total = value;
-        });
-      });
+      // calculateCartTotal().then((value) {
+      //   setState(() {
+      //     total = value;
+      //   });
+      // });
 
-      documentReference.set({
-        'items': items,
-        'total': total,
-        'orderDate': DateTime.now(),
-      });
+      // documentReference.set({
+      //   'items': items,
+      //   'total': total,
+      //   'orderDate': DateTime.now(),
+      // });
 
-      var documentReference2 = FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userEmail)
-          .collection('Cart')
-          .get();
+      // var documentReference2 = FirebaseFirestore.instance
+      //     .collection('Users')
+      //     .doc(userEmail)
+      //     .collection('Cart')
+      //     .get();
 
-      
       
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -346,6 +346,50 @@ class _MyCartState extends State<MyCart> {
           ],
         ),
       ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.house),
+              label: 'Home',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.heart),
+              label: 'Favorites',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.cart),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.person),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+          ],
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => favorites(userEmail: userEmail),
+                ),
+              );
+            }
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+          },
+        )
     );
   }
 

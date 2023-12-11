@@ -25,9 +25,9 @@ class summary extends StatefulWidget {
 }
 
 class _summaryState extends State<summary> {
-  List items = [];
-  
-
+  List<Map<String, dynamic>> orderDetails = [];
+  late String total = '';
+  late String cardnumber = '';
   @override
   void initState() {
     super.initState();
@@ -41,47 +41,49 @@ class _summaryState extends State<summary> {
           FirebaseFirestore.instance.collection('Users').doc(userEmail);
       CollectionReference collectionReference =
           documentReference.collection('Orders');
-      DocumentSnapshot snapshot =
-          await collectionReference.doc(widget.orderID).get();
-      if (snapshot.exists) {
-        print('User has stored order details');
-        Map<String, dynamic> orderDetails =
-            snapshot.data() as Map<String, dynamic>;
+
+      QuerySnapshot querySnapshot = await collectionReference
+          .where(
+            'orderID',
+            isEqualTo: widget.orderID,
+          )
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        List<Map<String, dynamic>> orderItems = [];
+
+        querySnapshot.docs.forEach((doc) {
+          Map<String, dynamic> orderData = doc.data() as Map<String, dynamic>;
+          List<Map<String, dynamic>> items =
+              List<Map<String, dynamic>>.from(orderData['orderItems'] ?? []);
+          total = orderData['orderTotal'].toString();
+          cardnumber = orderData['cardnumber'].toString();
+
+          orderItems.addAll(items);
+        });
 
         setState(() {
-          items = orderDetails['items'];
+          orderDetails = orderItems;
         });
+
+        print(orderDetails);
+        print(total);
       } else {
         print('User has not stored order details');
-        // Navigate to the order details screen
       }
     } catch (e) {
       print('Error fetching order details: $e');
     }
   }
 
-  Future<void> deleteOrderDetails() async {
-    try {
-      String userEmail = widget.userEmail;
-      DocumentReference documentReference =
-          FirebaseFirestore.instance.collection('Users').doc(userEmail);
-      CollectionReference collectionReference =
-          documentReference.collection('Orders');
-      DocumentSnapshot snapshot =
-          await collectionReference.doc(widget.orderID).get();
-      if (snapshot.exists) {
-        print('User has stored order details');
-        Map<String, dynamic> orderDetails =
-            snapshot.data() as Map<String, dynamic>;
-        await collectionReference.doc(widget.orderID).delete();
-        print('Order details deleted');
-      } else {
-        print('User has not stored order details');
-        // Navigate to the order details screen
-      }
-    } catch (e) {
-      print('Error fetching order details: $e');
-    }
+  String maskCardNumber(String cardNumber) {
+    int totalDigits = cardNumber.length;
+    int visibleDigits = 4;
+
+    String maskedPart = '*' * (totalDigits - visibleDigits);
+    String visiblePart = cardnumber.substring(totalDigits - visibleDigits);
+
+    return maskedPart + visiblePart;
   }
 
   @override
@@ -91,48 +93,87 @@ class _summaryState extends State<summary> {
         title: Text('Summary'),
       ),
       body: Column(children: [
-     
-      if (widget.country != null ||
+        if (widget.country != null ||
             widget.city != null ||
             widget.street != null ||
             widget.province != null)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.country != null)
-                Text('Country: ${widget.country}'),
-              if (widget.city != null)
-                Text('City: ${widget.city}'),
-              if (widget.street != null)
-                Text('Street: ${widget.street}'),
-              if (widget.province != null)
-                Text('Province: ${widget.province}'),
+              Text('Delivery details'),
+              if (widget.country != null) Text('Country: ${widget.country}'),
+              if (widget.city != null) Text('City: ${widget.city}'),
+              if (widget.street != null) Text('Street: ${widget.street}'),
+              if (widget.province != null) Text('Province: ${widget.province}'),
             ],
           ),
-        Text('Order Details'),
-        Expanded(
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(items[index]['title']),
-                subtitle: Text('Price: ${items[index]['price']}'),
-                trailing: Text('Quantity: ${items[index]['quantity']}'),
-              );
-            },
+        Text('Order summary'),
+        Column(children: [
+          ListView.builder(
+              shrinkWrap: true,
+              itemCount: orderDetails.length,
+              itemBuilder: (context, index) {
+                return Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/${orderDetails[index]['image']}',
+                      width: 100,
+                      height: 100,
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          '${orderDetails[index]['title']}',
+                        ),
+                        Text(
+                          '${orderDetails[index]['price']}',
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }),
+        ]),
+        Text('Payment details'),
+        Container(
+          child: Column(
+            children: [
+              Text('Payment details: '),
+              Text(
+                'Total: ' + total + ' LKR',
+              ),
+              Text(
+                'Card Number: ' + maskCardNumber(cardnumber),
+              ),
+            ],
           ),
         ),
-        ElevatedButton(
-            onPressed: () =>
-                {deleteOrderDetails(), 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
+        Container(
+          margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
-                  )
-                },
-            child: Text(' Continue Shopping')),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
+                  side: BorderSide(
+                    width: 2,
+                    color: Colors.black,
+                  )),
+              onPressed: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(),
+                      ),
+                    )
+                  },
+              child: Text(' Continue Shopping')),
+        ),
       ]),
     );
   }

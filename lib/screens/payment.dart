@@ -27,23 +27,23 @@ class Payment extends StatefulWidget {
 
 class _PaymentState extends State<Payment> {
   bool isAddCardClicked = false;
+  bool isCardSelected = false;
   TextEditingController cardNumberController = TextEditingController();
   TextEditingController cardHolderNameController = TextEditingController();
   TextEditingController expiryDateController = TextEditingController();
   TextEditingController cvvController = TextEditingController();
-  List isCheckedList = [];
   List<String> cardType = [
     'Visa',
     'MasterCard',
   ];
   String selectedCardType = '';
+  String cardSelectedForPayment = ' ';
+  List<Map<String, dynamic>> usersCards = [];
 
   @override
   void initState() {
     super.initState();
     fetchCardDetails();
-
-    isCheckedList = [];
   }
 
   Future<void> COD() async {
@@ -96,10 +96,18 @@ class _PaymentState extends State<Payment> {
 
       QuerySnapshot querySnapshot = await collectionReference.get();
 
-      return querySnapshot.docs; // Return the list of card details documents
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        usersCards.add(doc.data() as Map<String, dynamic>);
+      }
+
+      setState(() {
+        usersCards = usersCards;
+      });
+
+      return querySnapshot.docs;
     } catch (error) {
       print(error);
-      return []; // Return an empty list in case of an error
+      return [];
     }
   }
 
@@ -129,49 +137,77 @@ class _PaymentState extends State<Payment> {
 
   Future<void> Purchase() async {
     try {
-      String userEmail =
-          widget.userEmail; // Assuming widget.userEmail is defined
+      String userEmail = widget.userEmail;
       DocumentReference documentReference =
           FirebaseFirestore.instance.collection('Users').doc(userEmail);
       CollectionReference cart = documentReference.collection('Cart');
 
       CollectionReference orders = documentReference.collection('Orders');
 
-      //get the documents in the cart collection
       QuerySnapshot cartSnapShot = await cart.get();
 
-List<Map<String, dynamic>> orderItems = [];
+      List<Map<String, dynamic>> orderItems = [];
 
-      for (QueryDocumentSnapshot cartItem in 
-       cartSnapShot.docs
-      ) {
-  // Extract fields from each cart item
-  String documentID = cartItem.id;
-  int quantity = cartItem['quantity']; // Replace with the actual field name
-  double price = cartItem['price']; // Replace with the actual field name
-  String image = cartItem['image']; // Replace with the actual field name
+      for (QueryDocumentSnapshot cartItem in cartSnapShot.docs) {
+        String image = cartItem['productImage'];
+        String title = cartItem['title'];
+        String price = cartItem['price'].toString();
+        String quantity = cartItem['quantity'].toString();
+        String country = widget.country;
+        String city = widget.city;
+        String street = widget.street;
+        String province = widget.province;
+        String cardNumber = cardSelectedForPayment;
 
-  // Add the extracted fields to the orderItems list
-  orderItems.add({
-    'documentID': generateRandomId(20),
-    'quantity': quantity,
-    'price': price,
-    'image': image,
-  });
-}
+        orderItems.add({
+          'image': image,
+          'title': title,
+          'price': price,
+          'quantity': quantity,
+          'country': country,
+          'city': city,
+          'street': street,
+          'province': province,
+          'cardNumber': cardNumber,
+        });
+      }
 
-print(orderItems);
+      print(orderItems);
 
+      String orderID = '$userEmail/' + generateRandomId(10);
+      double orderTotal = 0;
 
-      DocumentReference newOrder = await orders.add(
-        {
-          'orderItems' : orderItems,
-          'createdAt' : FieldValue.serverTimestamp(),
-        }
+      for (Map<String, dynamic> orderItem in orderItems) {
+        orderTotal += double.parse(orderItem['price']) *
+            double.parse(orderItem['quantity']);
+      }
+
+      DocumentReference newOrder = await orders.add({
+        'orderID': orderID,
+        'orderItems': orderItems,
+        'createdAt': FieldValue.serverTimestamp(),
+        'orderTotal': orderTotal,
+      });
+
+      for (QueryDocumentSnapshot cartItem in cartSnapShot.docs) {
+        await cartItem.reference.delete();
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) {
+            return summary(
+              city: widget.city,
+              country: widget.country,
+              street: widget.street,
+              orderID: orderID,
+              province: widget.province,
+              userEmail: widget.userEmail,
+            );
+          },
+        ),
       );
-
-
-
     } catch (error) {
       print(error);
       // Handle the error,
@@ -179,15 +215,14 @@ print(orderItems);
   }
 
   String generateRandomId(int length) {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  final random = Random();
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
 
-  return String.fromCharCodes(
-    List.generate(length, (index) => chars.codeUnitAt(random.nextInt(chars.length))),
-  );
-}
-
-
+    return String.fromCharCodes(
+      List.generate(
+          length, (index) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
+  }
 
   @override
   Widget _buildAddCardDialog(BuildContext context) {
@@ -411,18 +446,6 @@ print(orderItems);
   }
 
   Widget build(BuildContext context) {
-    Color getColor(Set<MaterialState> states) {
-      const Set<MaterialState> interactiveStates = <MaterialState>{
-        MaterialState.pressed,
-        MaterialState.hovered,
-        MaterialState.focused,
-      };
-      if (states.any(interactiveStates.contains)) {
-        return Colors.blue;
-      }
-      return Colors.red;
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Payment'),
@@ -467,153 +490,242 @@ print(orderItems);
                 // Rest of your widget tree
               ],
             ),
-            Column(
-              //display the cards
-              children: [
-                Container(
-                  height: 500,
-                  margin: EdgeInsets.only(top: 10, left: 15, right: 15),
-                  child: FutureBuilder<List<DocumentSnapshot>>(
-                    future: fetchCardDetails(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator(); // Show loading indicator while fetching data
-                      } else if (snapshot.hasError) {
-                        return Text(
-                            'Error: ${snapshot.error}'); // Show error message if fetching fails
-                      } else if (snapshot.hasData &&
-                          snapshot.data!.isNotEmpty) {
-                        // If data is available, build the ListView with card details
-                        return Container(
-                          height: 200,
-                          child: ListView.builder(
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              DocumentSnapshot documentSnapshot =
-                                  snapshot.data![index];
-                              bool isChecked = false;
+            Container(
+          
 
-                              return Container(
-                                height: 180,
-                                margin: EdgeInsets.only(top: 10, bottom: 10),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      child: StatefulBuilder(builder:
-                                          (BuildContext context,
-                                              StateSetter setState) {
-                                        return Container(
-                                          child: Checkbox(
-                                            activeColor: Colors.white,
-                                            checkColor: Colors.black,
-                                            value: isChecked,
-                                            onChanged: (
-                                              bool? value,
-                                            ) {
-                                              setState(() {
-                                                isCheckedList.clear();
-                                                isChecked = value!;
-
-                                                if (isChecked) {
-                                                  isCheckedList.add(
-                                                    documentSnapshot[
-                                                        'cardNumber'],
-                                                  );
-                                                  print(
-                                                      'Checked list: $isCheckedList');
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        );
-                                      }),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (documentSnapshot['cardType'] ==
-                                            'Visa')
-                                          Container(
-                                            child: Image.asset(
-                                              'assets/images/visa.jpg',
-                                              width: 60,
-                                              height: 60,
-                                            ),
-                                          ),
-                                        if (documentSnapshot['cardType'] ==
-                                            'MasterCard')
-                                          Image.asset(
-                                            'assets/images/mastercard.jpg',
-                                            width: 60,
-                                            height: 60,
-                                          ),
-                                        Text(documentSnapshot['cardNumber'],
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            )),
-                                        Text(documentSnapshot['cardHolderName'],
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                            )),
-                                        Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 100,
-                                              child: Text(
-                                                  documentSnapshot[
-                                                      'expiryDate'],
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                  )),
-                                            ),
-                                            Text(documentSnapshot['cvv'],
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                )),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      alignment: Alignment.topRight,
-                                      child: IconButton(
-                                        icon: Icon(Icons.delete),
-                                        onPressed: () {
-                                          DeleteCard(documentSnapshot.id);
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+              height: 500,
+              child: StatefulBuilder(
+                
+                  builder: (BuildContext context, StateSetter setState) {
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: usersCards.length,
+                  itemBuilder: (context, index) {
+                    return SingleChildScrollView(
+                      child: Container(
+                        height: 180,
+                        margin: EdgeInsets.only(top: 10, bottom: 10 , left: 15, right: 15),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey,
                           ),
-                        );
-                      } else {
-                        return Text(
-                            'No card details available.'); // Show message if there are no card details
-                      }
-                    },
-                  ),
-                ),
-              ],
+                          borderRadius: BorderRadius.circular(16),
+                        ) ,
+                        child: CheckboxListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (usersCards[index]['cardType'] == 'Visa')
+                                Container(
+                                  child: Image.asset(
+                                    'assets/images/visa.jpg',
+                                    width: 60,
+                                    height: 60,
+                                  ),
+                                ),
+                              if (usersCards[index]['cardType'] == 'MasterCard')
+                                Image.asset(
+                                  'assets/images/mastercard.jpg',
+                                  width: 60,
+                                  height: 60,
+                                ),
+                              Text(usersCards[index]['cardNumber']),
+                              Text(
+                                usersCards[index]['expiryDate'],
+                              ),
+                            ],
+                          ),
+                          value: cardSelectedForPayment ==
+                              usersCards[index]['cardNumber'],
+                          onChanged: (value) {
+                            print(
+                                'Selected card number: ${usersCards[index]['cardNumber']}'); // Print the selected card number to the console
+                      
+                            setState(() {
+                              cardSelectedForPayment =
+                                  usersCards[index]['cardNumber'];
+                              isCardSelected = true;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }),
             ),
-            (isCheckedList.length > 0)
-                ? ElevatedButton(
-                    onPressed: () {
-                      Purchase();
-                    },
-                    child: Text('Purchase'),
-                  )
-                : SizedBox(),
+
+            // Column(
+            //   //display the cards
+            //   children: [
+            //     Container(
+            //       height: 500,
+            //       margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+            //       child: FutureBuilder<List<DocumentSnapshot>>(
+            //         future: fetchCardDetails(),
+            //         builder: (context, snapshot) {
+            //           if (snapshot.connectionState == ConnectionState.waiting) {
+            //             return CircularProgressIndicator(); // Show loading indicator while fetching data
+            //           } else if (snapshot.hasError) {
+            //             return Text(
+            //                 'Error: ${snapshot.error}'); // Show error message if fetching fails
+            //           } else if (snapshot.hasData &&
+            //               snapshot.data!.isNotEmpty) {
+            //             // If data is available, build the ListView with card details
+            //             return Container(
+            //               height: 200,
+            //               child: ListView.builder(
+            //                 itemCount: snapshot.data!.length,
+            //                 itemBuilder: (context, index) {
+            //                   DocumentSnapshot documentSnapshot =
+            //                       snapshot.data![index];
+            //                   bool isChecked = false;
+
+            //                   return Container(
+            //                     height: 180,
+            //                     margin: EdgeInsets.only(top: 10, bottom: 10),
+            //                     decoration: BoxDecoration(
+            //                       border: Border.all(
+            //                         color: Colors.grey,
+            //                       ),
+            //                       borderRadius: BorderRadius.circular(16),
+            //                     ),
+            //                     child: Row(
+            //                       children: [
+            //                         Container(
+            //                           child: StatefulBuilder(builder:
+            //                               (BuildContext context,
+            //                                   StateSetter setState) {
+            //                             return Container(
+            //                               child: Checkbox(
+            //                                 activeColor: Colors.white,
+            //                                 checkColor: Colors.black,
+            //                                 value: isChecked,
+            //                                 onChanged: (
+            //                                   bool? value,
+            //                                 ) {
+            //                                   setState(() {
+            //                                     isCheckedList.clear();
+            //                                     isChecked = value!;
+
+            //                                     if (isChecked) {
+            //                                       isCheckedList.add(
+            //                                         documentSnapshot[
+            //                                             'cardNumber'],
+            //                                       );
+            //                                       print(
+            //                                           'Checked list: $isCheckedList');
+            //                                     }
+            //                                   });
+            //                                 },
+            //                               ),
+            //                             );
+            //                           }),
+            //                         ),
+            //                         Column(
+            //                           crossAxisAlignment:
+            //                               CrossAxisAlignment.start,
+            //                           children: [
+            //                             if (documentSnapshot['cardType'] ==
+            //                                 'Visa')
+            //                               Container(
+            //                                 child: Image.asset(
+            //                                   'assets/images/visa.jpg',
+            //                                   width: 60,
+            //                                   height: 60,
+            //                                 ),
+            //                               ),
+            //                             if (documentSnapshot['cardType'] ==
+            //                                 'MasterCard')
+            //                               Image.asset(
+            //                                 'assets/images/mastercard.jpg',
+            //                                 width: 60,
+            //                                 height: 60,
+            //                               ),
+            //                             Text(documentSnapshot['cardNumber'],
+            //                                 style: TextStyle(
+            //                                   fontSize: 20,
+            //                                   fontWeight: FontWeight.bold,
+            //                                 )),
+            //                             Text(documentSnapshot['cardHolderName'],
+            //                                 style: TextStyle(
+            //                                   fontSize: 20,
+            //                                 )),
+            //                             Row(
+            //                               children: [
+            //                                 SizedBox(
+            //                                   width: 100,
+            //                                   child: Text(
+            //                                       documentSnapshot[
+            //                                           'expiryDate'],
+            //                                       style: TextStyle(
+            //                                         fontSize: 14,
+            //                                       )),
+            //                                 ),
+            //                                 Text(documentSnapshot['cvv'],
+            //                                     style: TextStyle(
+            //                                       fontSize: 14,
+            //                                     )),
+            //                               ],
+            //                             ),
+            //                           ],
+            //                         ),
+            //                         Container(
+            //                           alignment: Alignment.topRight,
+            //                           child: IconButton(
+            //                             icon: Icon(Icons.delete),
+            //                             onPressed: () {
+            //                               DeleteCard(documentSnapshot.id);
+            //                             },
+            //                           ),
+            //                         ),
+            //                       ],
+            //                     ),
+            //                   );
+            //                 },
+            //               ),
+            //             );
+            //           } else {
+            //             return Text(
+            //                 'No card details available.'); // Show message if there are no card details
+            //           }
+            //         },
+            //       ),
+            //     ),
+            //   ],
+            // ),
+
+            Container(
+              margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    fixedSize: Size(500, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    side: BorderSide(
+                      width: 2,
+                      color: Colors.black,
+                    )),
+                onPressed: () {
+                  if (isCardSelected == false) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please select a card'),
+                      ),
+                    );
+                    return;
+                  }
+                  Purchase();
+                },
+                child: Text('Purchase'),
+              ),
+            ),
           ],
         ),
       ),
