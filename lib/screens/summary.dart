@@ -1,8 +1,12 @@
 import 'dart:ffi';
-
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:bookstop/screens/HomeScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart' as printing;
 
 class summary extends StatefulWidget {
   final String userEmail;
@@ -28,6 +32,8 @@ class _summaryState extends State<summary> {
   List<Map<String, dynamic>> orderDetails = [];
   late String total = '';
   late String cardnumber = '';
+  final pdf = pw.Document();
+
   @override
   void initState() {
     super.initState();
@@ -77,13 +83,22 @@ class _summaryState extends State<summary> {
   }
 
   String maskCardNumber(String cardNumber) {
-    int totalDigits = cardNumber.length;
-    int visibleDigits = 4;
+  int totalDigits = cardNumber.length;
+  int visibleDigits = 4;
+  int maskedDigits = totalDigits - visibleDigits;
 
-    String maskedPart = '*' * (totalDigits - visibleDigits);
-    String visiblePart = cardNumber.substring(totalDigits - visibleDigits);
-    return maskedPart + visiblePart;
+  if (maskedDigits < 4) {
+    maskedDigits = 0; // Ensure it doesn't go below 0
   }
+
+  String maskedPart = '*' * maskedDigits;
+
+  String visiblePart =
+      cardNumber.substring(maskedDigits, totalDigits);
+
+  return maskedPart + visiblePart;
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,10 +108,7 @@ class _summaryState extends State<summary> {
       ),
       body: Container(
         margin: EdgeInsets.only(top: 10, left: 15, right: 15),
-        child: Column(
-            
-            crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (widget.country != null ||
               widget.city != null ||
               widget.street != null ||
@@ -104,24 +116,26 @@ class _summaryState extends State<summary> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Delivery details' , 
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                
+                Text(
+                  'Delivery details',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (widget.country != null) Text('Country: ${widget.country}'),
                 if (widget.city != null) Text('City: ${widget.city}'),
                 if (widget.street != null) Text('Street: ${widget.street}'),
-                if (widget.province != null) Text('Province: ${widget.province}'),
+                if (widget.province != null)
+                  Text('Province: ${widget.province}'),
               ],
             ),
-          Text('Order summary' ,
-          style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+          Text(
+            'Order summary',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Column(children: [
             ListView.builder(
@@ -129,7 +143,7 @@ class _summaryState extends State<summary> {
                 itemCount: orderDetails.length,
                 itemBuilder: (context, index) {
                   return Container(
-                    padding: EdgeInsets.only(top:8 , bottom: 8),
+                    padding: EdgeInsets.only(top: 8, bottom: 8),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: Colors.grey,
@@ -137,7 +151,6 @@ class _summaryState extends State<summary> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
-                      
                       children: [
                         Image.asset(
                           'assets/images/${orderDetails[index]['image']}',
@@ -164,20 +177,21 @@ class _summaryState extends State<summary> {
                   );
                 }),
           ]),
-          Text('Payment details' , 
-          style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),  
+          Text(
+            'Payment details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Container(
             child: Column(
               children: [
                 Text(
-                  'Total: LKR '+  total,
+                  'Total: LKR ' + total,
                 ),
                 Text(
-                  'Card Number: ' + maskCardNumber(cardnumber),
+                  'Card Number: ' + cardnumber,
                 ),
               ],
             ),
@@ -194,7 +208,6 @@ class _summaryState extends State<summary> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(0),
                     ),
-                   
                     side: BorderSide(
                       width: 2,
                       color: Colors.black,
@@ -209,6 +222,46 @@ class _summaryState extends State<summary> {
                     },
                 child: Text(' Continue Shopping')),
           ),
+          Container(
+              child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              textStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(0),
+              ),
+              side: BorderSide(
+                width: 2,
+                color: Colors.black,
+              ),
+            ),
+            onPressed: () async {
+              // Generate the PDF content
+              final pdf = pw.Document();
+              pdf.addPage(
+                pw.Page(
+                  pageFormat: PdfPageFormat.a4,
+                  build: (pw.Context context) {
+                    return pw.Center(
+                      child: pw.Text(
+                          'Order Summary\n\n' + // Add your order details here
+                              'Total: LKR $total\n' +
+                              'Card Number: ${maskCardNumber(cardnumber)}'),
+                    );
+                  },
+                ),
+              );
+
+              // Save the PDF file
+              final output = await getTemporaryDirectory();
+              final pdfFile = File('${output.path}/order_summary.pdf');
+              await pdfFile.writeAsBytes(await pdf.save());
+            },
+            child: Text('Download Receipt'),
+          ))
         ]),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:bookstop/screens/profile.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -221,7 +222,7 @@ class _favoritesState extends State<favorites> {
             ),
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.cart),
-              label: 'Profile',
+              label: 'Cart',
               backgroundColor: Colors.black,
             ),
             BottomNavigationBarItem(
@@ -244,6 +245,16 @@ class _favoritesState extends State<favorites> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
                     userEmail: userEmail,
                   ),
                 ),

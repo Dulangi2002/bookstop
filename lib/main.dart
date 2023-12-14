@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:english_words/english_words.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,10 @@ import 'package:bookstop/screens/Login.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+    final cameras = await availableCameras();
+      final firstCamera = cameras.first;
+
+
   //await MongoDatabase.connect();
   //print('Connected to database');
   runApp(const MyApp());

@@ -64,7 +64,9 @@ class _registerState extends State<register> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProfileImage(),
+            builder: (context) => ProfileImage(
+              user: user,
+            ),
           ),
         );
       }

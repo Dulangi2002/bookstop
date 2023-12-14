@@ -1,7 +1,11 @@
 import 'dart:math';
 
+import 'package:bookstop/screens/cart.dart';
+import 'package:bookstop/screens/favorites.dart';
 import 'package:bookstop/screens/locationdetails.dart';
+import 'package:bookstop/screens/profile.dart';
 import 'package:bookstop/screens/summary.dart';
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -15,9 +19,12 @@ class CheckOut extends StatefulWidget {
 }
 
 class _CheckOutState extends State<CheckOut> {
+  late String userEmail;
   @override
   void initState() {
     super.initState();
+    userEmail = widget.userEmail;
+    
   }
 
   Future<void> Delivery(BuildContext context) async {
@@ -205,7 +212,60 @@ class _CheckOutState extends State<CheckOut> {
             ),
           ],
         ),
-      ),
+      ), bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.house),
+              label: 'Home',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.heart),
+              label: 'Favorites',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.cart),
+              label: 'Cart',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.person),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+          ],
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => favorites(userEmail: userEmail),
+                ),
+              );
+            }
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+          },
+        )
     );
   }
 }

@@ -9,7 +9,7 @@ import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileImage extends StatefulWidget {
-  const ProfileImage({super.key});
+  const ProfileImage({super.key, required UserCredential user});
 
   @override
   State<ProfileImage> createState() => _ProfileImageState();
@@ -28,7 +28,8 @@ class _ProfileImageState extends State<ProfileImage> {
   void initState() {
     super.initState();
     _initializeCamera();
-    _initPrefs();
+  
+
   }
 
   Future<void> Skip() async {
@@ -61,14 +62,7 @@ class _ProfileImageState extends State<ProfileImage> {
   }
 
   Future<void> addprofilephoto() async {
-    if (image == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select a profile photo'),
-        ),
-      );
-      return;
-    }
+    
 
     try {
       String userEmail = FirebaseAuth.instance.currentUser!.email.toString();
@@ -83,18 +77,21 @@ class _ProfileImageState extends State<ProfileImage> {
       await FirebaseFirestore.instance.collection('Users').doc(userEmail).set(
         {'profileimage': downloadURL},
       );
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => HomeScreen(),
         ),
       );
+
+     
     } catch (error) {
       print("Error adding profile photo: $error");
     }
   }
 
+
+  
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
     // Retrieve the image path from shared preferences
@@ -106,6 +103,10 @@ class _ProfileImageState extends State<ProfileImage> {
       });
     }
   }
+
+ 
+  
+
 
   Future<void> _initializeCamera() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -143,18 +144,16 @@ class _ProfileImageState extends State<ProfileImage> {
   Widget imageProfile() {
     return Column(
       children: <Widget>[
+
+ 
         CircleAvatar(
-          backgroundColor: Colors.grey[400],
-          radius: 80.0,
-          backgroundImage: image != null ? FileImage(image!) : null,
-          child: image == null
-              ? Icon(
-                  Icons.account_circle,
-                  color: Colors.black,
-                  size: 60,
-                )
-              : null,
-        ),
+  backgroundColor: Colors.grey[400],
+  radius: 80.0,
+  backgroundImage: image != null
+      ? FileImage(image!) // Use FileImage if image is not null
+      : AssetImage('assets/images/profile.jpg') as ImageProvider,
+),
+
         Positioned(
           child: Container(
             margin: EdgeInsets.only(top: 10, left: 15, right: 15),
