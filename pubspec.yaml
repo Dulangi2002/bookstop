@@ -100,6 +100,8 @@ flutter:
       - assets/images/visa.jpg
       - assets/images/mastercard.jpg
       - assets/images/profile.jpg
+      - assets/images/signin.png
+      - assets/images/register.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -111,12 +113,24 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+  fonts:
+
+    - family: Literata
+      fonts:
+        - asset: fonts/Literata_36pt-Regular.ttf
+        - asset: fonts/Literata_36pt-SemiBold.ttf
+          weight: 600
+
+    - family: Roboto Condensed
+      fonts:
+        - asset: fonts/RobotoCondensed-Medium.ttf
+        - asset: fonts/RobotoCondensed-Bold.ttf
+          weight: 700 
+
+
+
+
+
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

@@ -1,5 +1,9 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:bookstop/screens/cart.dart';
+import 'package:bookstop/screens/favorites.dart';
+import 'package:bookstop/screens/profile.dart';
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -33,11 +37,13 @@ class _summaryState extends State<summary> {
   late String total = '';
   late String cardnumber = '';
   final pdf = pw.Document();
+  late String userEmail;
 
   @override
   void initState() {
     super.initState();
     FetchTheOrderDetails();
+    userEmail = widget.userEmail;
   }
 
   Future<void> FetchTheOrderDetails() async {
@@ -263,7 +269,68 @@ class _summaryState extends State<summary> {
             child: Text('Download Receipt'),
           ))
         ]),
-      ),
+      ),   bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.house),
+              label: 'Home',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.heart),
+              label: 'Favorites',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.cart),
+              label: 'Cart',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.person),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+          ],
+          onTap: (index) {
+             if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => favorites(userEmail: userEmail),
+                ),
+              );
+            }
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+          },
+        )
     );
   }
 }

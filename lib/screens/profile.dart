@@ -2,7 +2,6 @@ import 'package:bookstop/screens/HomeScreen.dart';
 import 'package:bookstop/screens/cart.dart';
 import 'package:bookstop/screens/favorites.dart';
 import 'package:bookstop/screens/pruchaseHistory.dart';
-import 'package:bookstop/screens/signIn.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -322,7 +321,7 @@ class _ProfileState extends State<Profile> {
             )
           ]),
         ),
-        bottomNavigationBar: BottomNavigationBar(
+     bottomNavigationBar: BottomNavigationBar(
           items: [
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.house),
@@ -346,6 +345,14 @@ class _ProfileState extends State<Profile> {
             ),
           ],
           onTap: (index) {
+             if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }
             if (index == 1) {
               Navigator.push(
                 context,
@@ -375,7 +382,8 @@ class _ProfileState extends State<Profile> {
               );
             }
           },
-        ));
+        )
+        );
   }
 
   Widget imageProfile() {

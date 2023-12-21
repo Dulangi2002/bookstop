@@ -29,6 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<Map<String, dynamic>> products = [];
   late List<Map<String, dynamic>> fantasyreads = [];
   late List<Map<String, dynamic>> newestadditions = [];
+  
+ int currentIndex = 0;  
 
   @override
   void initState() {
@@ -115,9 +117,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
         appBar: AppBar(),
         body: SingleChildScrollView(
+          
           child: Container(
+           
             width: MediaQuery.of(context).size.width,
-            child: Column(
+            child: Column(  
+              
               children: [
                 // Other widgets
 
@@ -126,12 +131,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding:
                         EdgeInsets.only(left: 15.0, top: 20.0, bottom: 20.0),
-                    child: Text(
-                      'Browse through our digital shelves',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          BootstrapIcons.book,  
+                        ),
+                        Text(
+                          'Browse through our digital shelves',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Literata',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -176,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       products[index]['title'],
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
+                                        fontFamily: 'Literata',
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
 
@@ -183,22 +197,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ),
-
                                   Container(
                                     child: Text(
-                                      
-
                                       products[index]['price'].toString(),
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
+                                        fontFamily: 'Literata',
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
-                                        
-
                                       ),
                                     ),
                                   ),
-                                
                                 ]),
                               ),
                             ),
@@ -215,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Explore our fantasy collection',
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontFamily: 'Literata',
+                        fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -263,11 +273,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: TextStyle(
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
-
+                                        fontFamily: 'Literata',
                                       ),
                                     ),
                                   ),
-
                                   Container(
                                     child: Text(
                                       fantasyreads[index]['price'].toString(),
@@ -275,12 +284,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: TextStyle(
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
-
+                                        fontFamily: 'Literata',
                                       ),
                                     ),
                                   ),
-
-                              
                                 ]),
                               ),
                             ),
@@ -297,8 +304,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Newest Additions',
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 16.0,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Literata',
                       ),
                     ),
                   ),
@@ -347,9 +355,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       newestadditions[index]['title'],
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
+                                        fontFamily: 'Literata',
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
-
                                       ),
                                     ),
                                   ),
@@ -362,12 +370,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: TextStyle(
                                         fontSize: 14.0,
                                         fontWeight: FontWeight.bold,
-
+                                        fontFamily: 'Literata',
                                       ),
                                     ),
                                   ),
-
-                                
                                 ],
                               ),
                             ),
@@ -382,11 +388,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
+          showUnselectedLabels: false,
+          showSelectedLabels: false,
+          
           items: [
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.house),
               label: 'Home',
               backgroundColor: Colors.black,
+            
+            
             ),
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.heart),
@@ -405,6 +416,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           onTap: (index) {
+            setState(() {
+              currentIndex = index;
+            });
+            if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+             
+             
+            }
             if (index == 1) {
               Navigator.push(
                 context,

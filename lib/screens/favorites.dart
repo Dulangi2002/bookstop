@@ -1,3 +1,4 @@
+import 'package:bookstop/screens/HomeScreen.dart';
 import 'package:bookstop/screens/profile.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -232,6 +233,14 @@ class _favoritesState extends State<favorites> {
             ),
           ],
           onTap: (index) {
+             if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }
             if (index == 1) {
               Navigator.push(
                 context,

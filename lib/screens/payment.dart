@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bookstop/screens/HomeScreen.dart';
+import 'package:bookstop/screens/cart.dart';
+import 'package:bookstop/screens/favorites.dart';
+import 'package:bookstop/screens/profile.dart';
 import 'package:bookstop/screens/summary.dart';
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
@@ -39,11 +44,13 @@ class _PaymentState extends State<Payment> {
   String selectedCardType = '';
   String cardSelectedForPayment = ' ';
   List<Map<String, dynamic>> usersCards = [];
+  late String userEmail;
 
   @override
   void initState() {
     super.initState();
     fetchCardDetails();
+    userEmail = widget.userEmail;
   }
 
   Future<void> COD() async {
@@ -587,7 +594,68 @@ class _PaymentState extends State<Payment> {
             ),
           ],
         ),
-      ),
+      ),   bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.house),
+              label: 'Home',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.heart),
+              label: 'Favorites',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.cart),
+              label: 'Cart',
+              backgroundColor: Colors.black,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(BootstrapIcons.person),
+              label: 'Profile',
+              backgroundColor: Colors.black,
+            ),
+          ],
+          onTap: (index) {
+             if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => favorites(userEmail: userEmail),
+                ),
+              );
+            }
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyCart(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
+                    userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+          },
+        )
     );
   }
 }

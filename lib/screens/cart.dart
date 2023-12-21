@@ -6,6 +6,8 @@ import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bookstop/screens/checkOut.dart';
+import 'package:bookstop/screens/profile.dart';
+
 
 class MyCart extends StatefulWidget {
   final String userEmail; 
@@ -346,7 +348,7 @@ class _MyCartState extends State<MyCart> {
           ],
         ),
       ),
-        bottomNavigationBar: BottomNavigationBar(
+         bottomNavigationBar: BottomNavigationBar(
           items: [
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.house),
@@ -360,7 +362,7 @@ class _MyCartState extends State<MyCart> {
             ),
             BottomNavigationBarItem(
               icon: Icon(BootstrapIcons.cart),
-              label: 'Profile',
+              label: 'Cart',
               backgroundColor: Colors.black,
             ),
             BottomNavigationBarItem(
@@ -370,6 +372,14 @@ class _MyCartState extends State<MyCart> {
             ),
           ],
           onTap: (index) {
+             if (index == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }
             if (index == 1) {
               Navigator.push(
                 context,
@@ -384,6 +394,16 @@ class _MyCartState extends State<MyCart> {
                 MaterialPageRoute(
                   builder: (context) => MyCart(
                     userEmail: userEmail,
+                  ),
+                ),
+              );
+            }
+            if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
+                  userEmail: userEmail,
                   ),
                 ),
               );

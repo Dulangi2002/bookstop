@@ -97,11 +97,17 @@ class _loginState extends State<login> {
         );
       } catch (e) {
         if (e is FirebaseAuthException) {
+          var message = 'An error occured, please check your credentials';
           if (e.code == 'user-not-found') {
-            print('No user found for that email.');
+            message = 'No user found for that email.';
           } else if (e.code == 'wrong-password') {
-            print('Wrong password provided for that user.');
+           message = 'Wrong password.';
           }
+          ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
         }
         print('Error: $e');
       }
@@ -122,135 +128,115 @@ class _loginState extends State<login> {
         child: Column(
           children: [
             Container(
-          width: MediaQuery.of(context).size.width,
-          height: 800,
-              
-              child:
-            
-          
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              width: MediaQuery.of(context).size.width,
+              height: 800,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/signin.png',
+                    width: 200,
+                    height: 200,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
 
-             children:[
-              Container(
-                  margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
-             
-                   
-                        // padding: EdgeInsets.only(left: 20 , bottom: 20  , right: 20 , top: 60),
+                    // padding: EdgeInsets.only(left: 20 , bottom: 20  , right: 20 , top: 60),
 
-                        child: TextFormField(
-                          cursorColor: Colors.black,
-                          cursorHeight: 20,
-                          controller: emailcontroller,
-                       
-                          decoration: InputDecoration(
-                           enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.black , width: 2),
-                            ),
-
-
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.black , width: 2),
-                            ),
-                            labelText: 'Email address',
-                            labelStyle: TextStyle(fontSize: 12),
-                            floatingLabelBehavior: FloatingLabelBehavior.never,
-                           
-
-                         
-                          ),
+                    child: TextFormField(
+                      cursorColor: Colors.black,
+                      cursorHeight: 20,
+                      controller: emailcontroller,
+                      decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2),
+                        ),
+                        labelText: 'Email address',
+                        labelStyle: TextStyle(fontSize: 12),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                       ),
-                      
-                      Container(
-                        margin: EdgeInsets.only(
-                            top: 10, left: 15, right: 15, bottom: 15),  
-                        child: TextFormField(
-                          
-                          cursorColor: Colors.black,
-
-                          controller: passwordcontroller,
-                          
-                          decoration: InputDecoration(
-                           enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.black , width: 2),
-                            ),
-                             focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2 , color: Colors.black , ),
                     ),
-                            labelText: 'Password',
-                            labelStyle: TextStyle(fontSize: 12),
-                            floatingLabelBehavior: FloatingLabelBehavior.never,
-                          
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        top: 10, left: 15, right: 15, bottom: 15),
+                    child: TextFormField(
+                      cursorColor: Colors.black,
+                      controller: passwordcontroller,
+                      decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 2,
+                            color: Colors.black,
                           ),
                         ),
+                        labelText: 'Password',
+                        labelStyle: TextStyle(fontSize: 12),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                       ),
-                      Container(
-                        margin: EdgeInsets.only(top: 10, left: 15, right: 15),
-                          child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 10, left: 15, right: 15),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           foregroundColor: Colors.white,
                           textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
-                           fixedSize: Size(500, 60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                  
+                          fixedSize: Size(500, 60),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          side: BorderSide(
+                            width: 2,
+                            color: Colors.black,
+                          )),
+                      onPressed: login,
+                      child: Text(
+                        'Sign in',
+                      ),
                     ),
-                     side: BorderSide(
-                        width: 2,
-                        color: Colors.black,
-                      )
                   ),
-                            onPressed: login,
-                            child: Text(
-                              'Sign in',
-                          
-                            ),
-                          ),
+                  Container(
+                    margin: EdgeInsets.only(top: 10),
+                    width: 200,
+                    height: 50,
+                    child: TextButton(
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.black),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            Colors.transparent),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => register()),
+                        );
+                      },
+                      child: Text(
+                        'Not registered yet? Sign up',
+                        style: TextStyle(
+                          color: Colors.black,
+                          decoration: TextDecoration.underline,
                         ),
-                      
-                      Container(
-                        margin: EdgeInsets.only(top: 10),
-                        width: 200,
-                        height: 50,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            foregroundColor:
-                                MaterialStateProperty.all<Color>(Colors.black),
-                            overlayColor: MaterialStateProperty.all<Color>(
-                                Colors.transparent),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => register()),
-                            );
-                          },
-                          child: Text(
-                            'Not registered yet? Sign up',
-                            style: TextStyle(
-                              color: Colors.black,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ],                      
-            ),        
-          ),  
-        );
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
-  
-      
-

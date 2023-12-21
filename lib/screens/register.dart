@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:bookstop/screens/Login.dart';
 import 'package:bookstop/screens/profilephoto.dart';
-import 'package:bookstop/screens/signIn.dart';
 import 'package:bookstop/screens/register.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,6 +93,7 @@ class _registerState extends State<register> {
         body: SingleChildScrollView(
             child: Column(
       children: [
+       
         Container(
           width: MediaQuery.of(context).size.width,
           height: 800,
@@ -101,6 +101,12 @@ class _registerState extends State<register> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+               Image.asset(
+          'assets/images/register.png',
+          width: 200,
+          height: 200,
+
+        ),
               Container(
                 margin: EdgeInsets.only(left: 15, right: 15, bottom: 15),
                 child: TextFormField(
